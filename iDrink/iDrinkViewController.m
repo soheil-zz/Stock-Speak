@@ -289,7 +289,7 @@ static NSString* kAppId = @"116669421761762";
     loadingView = [LoadingView loadingViewInView:self.view];
     NSLog (@"audioRecorderDidFinishRecording:successfully:");
     
-    NSString *urlString = @"http://pubbay.com/pub/speech/drink.php";
+    NSString *urlString = @"http://pubbay.com/pub/speech/stock.php";
     if (!isAudio) {
         urlString = [[urlString stringByAppendingString:@"?query="]
                      stringByAppendingString: [topField.text stringByAddingPercentEscapesUsingEncoding: NSASCIIStringEncoding]];
@@ -500,9 +500,9 @@ static NSString* kAppId = @"116669421761762";
     {
         TWTweetComposeViewController *tweetSheet = 
         [[TWTweetComposeViewController alloc] init];
-        [tweetSheet setInitialText:[NSString stringWithFormat: @"I just made a #drink called \"%@\"!", topField.text]];
+        [tweetSheet setInitialText:[NSString stringWithFormat: @"#stock for \"%@\" is going for %@!", topField.text, label1.text]];
         [tweetSheet addURL:[NSURL URLWithString:
-                            [NSString stringWithFormat: @"http://www.jog-a-lot.com/idrink/%@", 
+                            [NSString stringWithFormat: @"http://www.jog-a-lot.com/stock-speack/%@", 
                              [topField.text stringByReplacingOccurrencesOfString:@" " withString:@"+"]]]];
         [tweetSheet addImage:[UIImage imageNamed:@"Default.png"]];
         [self presentModalViewController:tweetSheet animated:YES];
@@ -920,12 +920,12 @@ static NSString* kAppId = @"116669421761762";
 - (IBAction)publishStream:(id)sender {
     NSMutableDictionary* params = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             kAppId, kAppId,
-            [NSString stringWithFormat: @"http://www.jog-a-lot.com/idrink/%@", topField.text], @"link",
-            @"http://www.jog-a-lot.com/idrink-small.gif", @"picture",
-            @"Free iDrink iPhone app", @"name",
-            @"Share Your Drink", @"caption",
-            [NSString stringWithFormat: @"OMG! I just found out how to make a \"%@\" on iDrink app.", topField.text], @"description",
-            [NSString stringWithFormat: @"I just made a drink called \"%@\"!", topField.text], @"message",
+            [NSString stringWithFormat: @"http://www.jog-a-lot.com/stock-speak/%@", topField.text], @"link",
+            @"http://www.jog-a-lot.com/images/stock-speak-small.gif", @"picture",
+            @"Free Stock Speak iPhone app", @"name",
+            @"Look up a Stock", @"caption",
+            [NSString stringWithFormat: @"Stock for \"%@\" is going for %@.", topField.text, label1.text], @"description",
+            [NSString stringWithFormat: @"Stock for \"%@\" is going for %@.", topField.text, label1.text], @"message",
                                    nil];
     
     [_facebook dialog:@"feed" andParams:params andDelegate:self];
