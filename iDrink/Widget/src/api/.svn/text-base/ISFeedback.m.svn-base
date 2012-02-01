@@ -1,0 +1,78 @@
+//
+//  ISFeedback.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/5/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISFeedback.h"
+#import "ISIdeasController.h"
+#import "ISServiceConstants.h"
+#import "ISService.h"
+
+@interface ISFeedback (private) <UIAlertViewDelegate>
+@end
+
+@implementation ISFeedback 
+
+ISFeedback* gISFeedbackSharedInstance;
+
++(ISFeedback*)initSharedInstance:(NSString*)apiKey {
+	gISFeedbackSharedInstance = [[ISFeedback alloc] initWithApiKey:apiKey];
+	return gISFeedbackSharedInstance;
+}
+
++(ISFeedback*)sharedInstance {
+	return gISFeedbackSharedInstance;
+}
+
+#pragma mark NSObject
+
+-(id)initWithApiKey:(NSString*)apiKey {
+	self = [super init];
+	_service = [[ISService serviceWithApiKey:apiKey] retain];
+	return self;
+}
+
+-(void)dealloc {
+	[_service release]; _service = nil;
+	[super dealloc];
+}
+
+-(UINavigationController*)pushOntoViewController:(UIViewController*)viewController {
+	return [ISIdeasController pushOntoViewController:viewController withService:_service];
+}
+-(void)registerForPushNotifications:(NSData*)token {
+	[_service registerForPushNotificationsWithDelegate:_service withToken:token];
+}
+-(BOOL)isFeedbackPushNotification:(NSDictionary*)userInfo {
+	return userInfo && [userInfo objectForKey:@"IS"];
+}
+-(void)handleFeedbackPushNotification:(NSDictionary*)userInfo inViewController:(UIViewController*)viewController prompt:(BOOL)prompt {
+	NSDictionary* idead = [userInfo objectForKey:@"IS"];
+	NSDictionary* apsd = [userInfo objectForKey:@"aps"];
+	_targetViewController = [viewController retain];
+	_targetIdeaKey = [(NSNumber*)[idead objectForKey:@"id"] intValue];
+	if (prompt) {
+		UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"" message:[apsd objectForKey:@"alert"] delegate:self 
+										  cancelButtonTitle:@"Cancel" 
+										  otherButtonTitles:[apsd objectForKey:@"action-loc-key"],nil];
+		[alert show];
+		[alert release];
+	} else {
+		[ISIdeasController pushOntoViewController:_targetViewController withService:_service andLoadIdea:_targetIdeaKey];
+		[_targetViewController release];
+		_targetIdeaKey = 0;
+	}
+}
+
+-(void)alertView:(UIAlertView*)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+	if (buttonIndex == 1 && _targetIdeaKey) {
+		[ISIdeasController pushOntoViewController:_targetViewController withService:_service andLoadIdea:_targetIdeaKey];
+	}
+	[_targetViewController release];
+	_targetIdeaKey = 0;
+}
+
+@end

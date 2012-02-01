@@ -1,0 +1,18 @@
+//
+//  ISIconCell.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/21/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISIconCell.h"
+
+@implementation ISIconCell
+@synthesize iconView = _iconView;
+@synthesize label = _label;
+
+-(void)populateWithIcon:(UIImage*)image withText:(NSString*)text {
+	[_iconView setImage:image];
+	[_label setText:text];
+}
+@end

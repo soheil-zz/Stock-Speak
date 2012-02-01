@@ -1,0 +1,181 @@
+//
+//  ISIdeasController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/6/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISIdeasController.h"
+
+#import "ISService.h"
+#import "ISServiceGetIdeasInvocation.h"
+#import "ISIdeaCell.h"
+#import "CAVNSArrayTypeCategory.h"
+#import "ISWebController.h"
+#import "ISNewIdeaController.h"
+#import "ISIdeaController.h"
+#import "ISIdea.h"
+
+#define kISIdeasControllerRowHeight 93
+
+@interface ISIdeasController (private) <ISServiceGetCategoriesDelegate
+	,ISServiceGetIdeasDelegate
+	,ISNewIdeaDelegate>
+-(void)openIdea:(ISIdea*)idea;
+@end
+
+@implementation ISIdeasController
+@synthesize container = _container;
+@synthesize service = _service;
+@synthesize ideasTable = _ideasTable;
+@synthesize ideas = _ideas;
+@synthesize ideaToLoadKey;
+
++(UINavigationController*)pushOntoViewController:(UIViewController*)viewController 
+									 withService:(ISService*)service {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	return [ISIdeasController pushOntoViewController:viewController withService:service andLoadIdea:0];
+}
+
++(UINavigationController*)pushOntoViewController:(UIViewController*)viewController 
+									 withService:(ISService*)service 
+									 andLoadIdea:(NSInteger)ideaKey {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	NSMutableDictionary* injections = [[[NSMutableDictionary alloc] init] autorelease];
+	[injections setObject:service forKey:@"service"];
+	NSDictionary* proxied = [NSDictionary dictionaryWithObject:injections forKey:UINibExternalObjects];
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"Ideas" owner:viewController options:proxied];
+	UINavigationController* nav = [wired firstObjectWithClass:[UINavigationController class]];
+	ISIdeasController* controller = (ISIdeasController*)nav.topViewController;
+	controller.ideaToLoadKey = ideaKey;
+	[viewController presentModalViewController:nav animated:YES];
+	return nav;
+}
+
+- (void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setContainer:nil];
+	[self setIdeas:nil];
+	[self setService:nil];
+	[super dealloc];
+}
+- (void)viewDidLoad {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+    [super viewDidLoad];
+	[_ideasTable setRowHeight:kISIdeasControllerRowHeight];
+	[self refresh:nil];
+}
+-(void)viewWillAppear:(BOOL)animated {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[self navigationController] setToolbarHidden:NO animated:YES];
+	[_ideasTable reloadData];
+}
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+	return YES;
+}
+-(IBAction)signIn:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+}
+-(IBAction)composeIdea:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	NSMutableDictionary* injections = [[[NSMutableDictionary alloc] init] autorelease];
+	[injections setObject:_service forKey:@"service"];
+	NSDictionary* proxied = [NSDictionary dictionaryWithObject:injections forKey:UINibExternalObjects];
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"NewIdea" owner:self options:proxied];
+	ISNewIdeaController* controller = [wired firstObjectWithClass:[ISNewIdeaController class]];
+	[[self navigationController] pushViewController:controller animated:YES];
+}
+-(IBAction)closeFeedback:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self dismissModalViewControllerAnimated:YES];
+}
+
+-(IBAction)refresh:(id)sender {
+	[[self service] getCategoriesWithDelegate:self];
+}
+
+#pragma mark ISServiceGetCategoriesDelegate
+
+-(void)getCategoriesDidFinish:(ISServiceGetCategoriesInvocation*)invocation withCategories:(NSArray*)categories withError:(NSError*)error {
+	_categories = [categories retain];
+	[[self service] getIdeasWithDelegate:self inCategory:nil];
+}
+
+#pragma mark ISServiceGetIdeasDelegate
+
+-(void)getIdeasDidFinish:(ISServiceGetIdeasInvocation*)invocation 
+			   withIdeas:(NSMutableArray*)ideas 
+			   withError:(NSError*)error {
+	
+	NSMutableArray* sorted = [[[NSMutableArray alloc] initWithCapacity:[ideas count]] autorelease];
+	[sorted addObjectsFromArray:[ideas sortedArrayUsingSelector:@selector(compareTo:)]];
+	[self setIdeas:sorted];
+	[[self ideasTable] reloadData];
+	if (ideaToLoadKey) {
+		ISIdea* found = nil;
+		for (ISIdea* idea in ideas) {
+			if ([idea.key intValue] == ideaToLoadKey) {
+				found = idea;
+				break;
+			}
+		} if (found) {
+			[self openIdea:found];
+		}
+	}
+}
+
+-(IBAction)visitIdeaScaleDotCom:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[ISWebController openWithin:[self navigationController] withOwner:self];
+}
+#pragma mark UITableViewDataSource
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+	return [[self ideas] count];
+}
+
+-(CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath {
+	return kISIdeasControllerRowHeight;
+}
+
+#pragma mark UITableViewDelegate
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	ISIdeaCell *cell = (ISIdeaCell *)[tableView dequeueReusableCellWithIdentifier:@"IdeaCell"];
+	if (cell == nil) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"IdeaRow" owner:self options:nil] firstObjectWithClass:[ISIdeaCell class]];
+    }	
+    NSUInteger index = [indexPath indexAtPosition:1];
+	ISIdea* idea = [_ideas objectAtIndex:index];
+	[cell update:idea];
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self openIdea:[_ideas objectAtIndex:indexPath.row]];
+}
+
+-(void)openIdea:(ISIdea*)idea {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSMutableDictionary* injections = [[[NSMutableDictionary alloc] init] autorelease];
+	[injections setObject:_service forKey:@"service"];
+	[injections setObject:idea forKey:@"idea"];
+	NSDictionary* proxied = [NSDictionary dictionaryWithObject:injections forKey:UINibExternalObjects];
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"Idea" owner:self options:proxied];
+	ISIdeaController* controller = [wired firstObjectWithClass:[ISIdeaController class]];
+	[[self navigationController] pushViewController:controller animated:YES];
+}
+
+#pragma mark ISNewIdeaDelegate
+-(void)newIdeaController:(ISNewIdeaController*)controller didCreateNewIdea:(ISIdea*)idea {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self refresh:self];
+}
+
+@end

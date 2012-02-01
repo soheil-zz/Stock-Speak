@@ -1,0 +1,45 @@
+//
+//  ISIdeaCell.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISIdeaCell.h"
+#import "ISIdea.h"
+#import "ISTag.h"
+#import "ISCategory.h"
+#import "ISIdea+UI.h"
+
+@interface ISIdeaCell (private)
+-(NSString*)tagsText:(ISIdea*)idea;
+@end
+
+
+@implementation ISIdeaCell
+@synthesize iconView = _iconView;
+@synthesize countLabel = _countLabel;
+@synthesize titleLabel = _titleLabel;
+@synthesize descriptionLabel = _descriptionLabel;
+
+@synthesize commentsIcon = _commentsIcon;
+@synthesize commentCountLabel = _commentCountLabel;
+@synthesize tagsLabel = _tagsLabel;
+
+@synthesize cornerIcon = _cornerIcon;
+
+-(void)update:(ISIdea*)idea {
+	[_countLabel setText:[NSString stringWithFormat:@"%@", [idea votes]]];
+	[_titleLabel setText:[idea title]];
+	[_descriptionLabel setText:[idea text]];
+	
+	BOOL hidden = ![[idea commentCount] intValue];
+	NSString* count = hidden ? @"" : [NSString stringWithFormat:@"%@",[idea commentCount]];
+	[_commentsIcon setHidden:hidden];
+	[_commentCountLabel setText:count];
+	[_tagsLabel setText:[idea tagsText]];
+	[_iconView setImage:[idea categoryIcon]];
+	[_cornerIcon setImage:[idea cornerIcon]];
+}
+
+@end

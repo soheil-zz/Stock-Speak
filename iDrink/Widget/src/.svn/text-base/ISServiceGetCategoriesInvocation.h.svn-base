@@ -1,0 +1,22 @@
+//
+//  ISServiceGetCategoriesInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceAsyncInvocation.h"
+
+@class ISServiceGetCategoriesInvocation;
+@class ISCategory;
+
+@protocol ISServiceGetCategoriesDelegate
+-(void)getCategoriesDidFinish:(ISServiceGetCategoriesInvocation*)invocation withCategories:(NSArray*)categories withError:(NSError*)error;
+@end
+
+@interface ISServiceGetCategoriesInvocation : ISServiceAsyncInvocation {
+	NSMutableArray* _categories;
+}
+@property (nonatomic,retain) NSMutableArray* categories;
+@end

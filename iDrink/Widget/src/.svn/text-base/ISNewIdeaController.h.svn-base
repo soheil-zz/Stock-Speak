@@ -1,0 +1,54 @@
+//
+//  ISNewIdeaController.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISIdea;
+@class ISService;
+@class ISLabelCell;
+@class ISCategoryPickerController;
+@class ISIconCell;
+@class ISActivityOverlayController;
+
+@protocol ISNewIdeaDelegate;
+
+@interface ISNewIdeaController : UITableViewController {
+	id <ISNewIdeaDelegate> _delegate;
+	ISService* _service;
+	ISIdea* _idea;
+	
+	ISLabelCell* _titleCell;
+	ISLabelCell* _textCell;
+	ISIconCell* _categoryCell;
+	NSMutableArray* _tags;
+	NSUInteger _newTagRow;
+	
+	ISCategoryPickerController* _categoryPicker;
+	
+	BOOL _keyboardShowing;
+	CGFloat _nokeyboardHeight;
+	UITableViewCell* _editingCell;
+	
+	ISActivityOverlayController* _activity;
+}
+@property (nonatomic,retain) IBOutlet id <ISNewIdeaDelegate> delegate;
+@property (nonatomic,retain) IBOutlet ISService* service;
+@property (nonatomic,retain) IBOutlet ISLabelCell* titleCell;
+@property (nonatomic,retain) IBOutlet ISLabelCell* textCell;
+@property (nonatomic,retain) IBOutlet ISIconCell* categoryCell;
+
+@property (nonatomic,retain) ISActivityOverlayController* activity;
+
+@property (nonatomic,retain) ISIdea* idea;
+
+-(IBAction)visitIdeaScaleDotCom:(id)sender;
+-(IBAction)save:(id)sender;
+@end
+
+@protocol ISNewIdeaDelegate
+-(void)newIdeaController:(ISNewIdeaController*)controller didCreateNewIdea:(ISIdea*)idea;
+@end

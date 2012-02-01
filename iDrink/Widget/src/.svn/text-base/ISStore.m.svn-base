@@ -1,0 +1,187 @@
+//
+//  ISStore.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/11/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISStore.h"
+
+#import "ISIdea.h"
+#import "ISCategory.h"
+#import "ISTag.h"
+#import "ISUser.h"
+#import "ISComment.h"
+
+@interface ISStore (private)
+-(void)contextDidSave:(NSNotification*)notification;
+@end
+
+@implementation ISStore
+@synthesize model = _model;
+@synthesize context = _context;
+@synthesize coordinator = _coordinator;
+
+@synthesize defaultCategory = _defaultCategory;
+
++(NSString*)documentsDirectory {
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *basePath = ([paths count] > 0) ? [paths objectAtIndex:0] : nil;
+    return basePath;
+}
+
++(NSString*)path:(NSString*)storeName{
+	if (LOG) {NSLog(@"%s fullStoreName: %@",__FUNCTION__,[[ISStore documentsDirectory] stringByAppendingPathComponent: storeName]);}
+	return [[ISStore documentsDirectory] stringByAppendingPathComponent: storeName];
+}
+
++(NSURL*)urlWithStoreName:(NSString*)storeName{
+	return [NSURL fileURLWithPath:[ISStore path:storeName]];
+}
+
+-(id)initWithStoreName:(NSString*)storeName {
+	if (LOG) {NSLog(@"%s storeName: %@",__FUNCTION__, storeName);}
+	self = [super init];
+	_categories = [[NSMutableDictionary alloc] init];
+	[self setModel:[NSManagedObjectModel mergedModelFromBundles:nil]];
+	[self setCoordinator:[[[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:_model] autorelease]];
+	NSError* error = nil;
+	if (![_coordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:[ISStore urlWithStoreName:storeName] options:nil error:&error] || error) { 
+		@throw [NSException exceptionWithName:@"ICStoreException" 
+									   reason:@"Unable to initialize persistent store coordinator."  
+									 userInfo:nil];
+	}
+	[self setContext:[[[NSManagedObjectContext alloc] init] autorelease]];
+	[_context setPersistentStoreCoordinator:_coordinator];
+	return self;
+}
+
+-(id)init {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	return [self initWithStoreName:kISStoreDefaultStoreName];
+}
+
+
+-(id)retain {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount],([self retainCount]+1));}
+	return [super retain];
+}
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_categories release]; _categories = nil;
+	[self setDefaultCategory:nil];
+	@try {
+		[self setContext:nil];
+	} @catch (NSException* e) {
+		if (LOG) {NSLog(@"%s - unable to properly destroy the context: %@",__FUNCTION__,e);}		
+	}
+	[self setCoordinator:nil];
+	[self setModel:nil];
+	[super dealloc];
+}
+
+- (void)contextDidSave:(NSNotification *)notification {	
+	if (LOG) {NSLog(@"%s",__FUNCTION__);};	
+}
+
+-(ISUser*)authenticatedUser {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSFetchRequest *request = [[NSFetchRequest alloc] init];
+	[request setEntity:[NSEntityDescription entityForName:@"ISUser" inManagedObjectContext:_context]];
+	[request setPredicate:[NSPredicate predicateWithFormat:@"name like[c] %@", [ISUser currentDeviceId]]];
+	
+	NSError* error = nil;
+	NSArray* results = [_context executeFetchRequest:request error:&error];
+	[request release];
+	if (error) {[NSException raise:@"store-fatal" format:@"Unable to fetch User (owner), %@",error];}
+	
+	ISUser* user = (results && [results count] > 0) ? [results objectAtIndex:0] : nil;
+	if (!user) {
+		user = [self newUser];
+		[user setDeviceId:[ISUser currentDeviceId]];
+		[_context save:&error];
+		if (error) {[NSException raise:@"store-fatal" format:@"Unable to fetch User (owner), %@",error];}
+	}
+	return user;
+}
+
+-(ISIdea*)newIdea {
+	ISIdea* idea = [[[ISIdea alloc] init] autorelease];
+	[idea setTitle:@""];
+	[idea setText:@""];
+	[idea setCategory:[self defaultCategory]];
+	[idea setVotes:[NSNumber numberWithInt:0]];
+	[idea setCommentCount:[NSNumber numberWithInt:0]];
+	return idea;
+}
+
+-(ISIdea*)ideaForKey:(NSNumber*)key {
+	ISIdea* idea = [self newIdea];
+	[idea setKey:key];
+	return idea;
+}
+
+-(NSArray*)categories {
+	return [_categories allValues];
+}
+
+-(ISCategory*)categoryForKey:(NSNumber*)key {
+	ISCategory* category = [_categories objectForKey:key];
+	if (!category) {
+		category = [[[ISCategory alloc] init] autorelease];
+		[category setKey:key];
+		[_categories setObject:category forKey:key];
+	}
+	return category;
+}
+
+-(ISTag*)tag:(NSString*)name {
+	ISTag* tag = [[[ISTag alloc] init] autorelease];
+	[tag setName:name];
+	return tag;
+}
+
+-(ISUser*)newUser {
+	return [NSEntityDescription insertNewObjectForEntityForName:@"ISUser" inManagedObjectContext:_context];
+}
+
+-(ISUser*)userForKey:(NSNumber*)key withDeviceId:(NSString*)deviceId {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (deviceId && [deviceId caseInsensitiveCompare:[ISUser currentDeviceId]] == NSOrderedSame) {
+		ISUser* user = [self authenticatedUser];
+		[user setKey:key];
+		return user;
+	}
+	NSFetchRequest *request = [[NSFetchRequest alloc] init];
+	[request setEntity:[NSEntityDescription entityForName:@"ISUser" inManagedObjectContext:_context]];
+	[request setPredicate:[NSPredicate predicateWithFormat:@"key == %@", key]];
+	
+	NSError* error = nil;
+	NSArray* results = [_context executeFetchRequest:request error:&error];
+	[request release];
+	if (error) {[NSException raise:@"store-fatal" format:@"Unable to fetch User (owner), %@",error];}
+	
+	ISUser* user = (results && [results count] > 0) ? [results objectAtIndex:0] : nil;
+	if (!user) {
+		user = [self newUser];
+		[user setKey:key];
+		[user setDeviceId:deviceId];
+	}
+	return user;
+}
+
+-(ISComment*)newComment {
+	return [[[ISComment alloc] init] autorelease];
+}
+
+-(ISComment*)commentForKey:(NSNumber*)key {
+	ISComment* comment = [self newComment];
+	[comment setKey:key];
+	return comment;
+}
+
+@end

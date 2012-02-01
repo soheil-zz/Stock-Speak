@@ -1,0 +1,82 @@
+//
+//  ISServiceVoteOnIdeaInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/2/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServiceVoteOnIdeaInvocation.h"
+#import "ISStore.h"
+#import "ISIdea.h"
+#import "ISUser.h"
+
+@interface ISServiceVoteOnIdeaInvocation (private)
+-(NSString*)body;
+@end
+
+@implementation ISServiceVoteOnIdeaInvocation
+@synthesize idea = _idea;
+@synthesize vote = _vote;
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_idea release];
+	[super dealloc];
+}
+
+-(void)invoke {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSString* path = [NSString stringWithFormat:@"ideascale.ideas.voteOnIdea?apiKey=%@",_apiKey];
+	[self post:path body:[self body]];
+}
+
+-(NSString*)body {
+	NSMutableDictionary* bodyD = [[[NSMutableDictionary alloc] init] autorelease];
+	[bodyD setObject:[_idea key] forKey:@"ideaID"];
+	[bodyD setObject:[ISUser currentDeviceId] forKey:@"iPhoneID"];
+	[bodyD setObject:[NSNumber numberWithInt:_vote] forKey:@"vote"];
+	return [bodyD JSONRepresentation];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate voteOnIdeaDidFinish:self withIdea:_idea withVote:_vote 
+							 withError:[NSError errorWithDomain:@"service" 
+														   code:[[self response] statusCode] 
+													   userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate voteOnIdeaDidFinish:self withIdea:_idea withVote:_vote withError:error];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	if ([[self response] isOK]) {
+		NSDictionary* resultsd = [[[[NSString alloc] initWithData:_receivedData 
+														 encoding:NSUTF8StringEncoding] autorelease] JSONValue];
+		NSMutableArray* ideasarr = [[resultsd objectForKey:@"response"] objectForKey:@"ideas"];
+		NSDictionary* idead = [ideasarr objectAtIndex:0];
+		[self populateIdea:_idea fromJSONDict:idead];
+		[_delegate voteOnIdeaDidFinish:self withIdea:_idea withVote:_vote withError:nil];
+	} else {
+		[_delegate voteOnIdeaDidFinish:self withIdea:_idea withVote:_vote 
+							 withError:[NSError errorWithDomain:@"service" 
+														   code:[[self response] statusCode] 
+													   userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+
+@end

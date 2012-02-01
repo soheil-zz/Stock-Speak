@@ -1,0 +1,90 @@
+//
+//  ISServicePostCommentInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISServicePostCommentInvocation.h"
+
+#import "ISStore.h"
+#import "ISUser.h"
+#import "ISIdea.h"
+#import "ISComment.h"
+
+@interface ISServicePostCommentInvocation (private)
+-(NSString*)body;
+@end
+
+@implementation ISServicePostCommentInvocation
+@synthesize idea = _idea;
+@synthesize comment = _comment;
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_idea release];
+	[_comment release];
+	[super dealloc];
+}
+-(void)invoke {
+	[self post:[NSString stringWithFormat:@"ideascale.comments.postComment?apiKey=%@&categoryID=%@",_apiKey,[[_idea category] key]]
+		  body:[self body]];
+}
+
+-(NSString*)body {
+	NSMutableDictionary* bodyD = [[[NSMutableDictionary alloc] init] autorelease];
+	[bodyD setObject:[_idea key] forKey:@"ideaID"];
+	[bodyD setObject:[ISUser currentDeviceId] forKey:@"iPhoneID"];
+	[bodyD setObject:[_comment text] forKey:@"text"];
+	return [bodyD JSONRepresentation];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate postCommentDidFinish:self 
+							withComment:_comment 
+								 inIdea:_idea 
+							  withError:[NSError errorWithDomain:@"service" 
+															code:[[self response] statusCode] 
+														userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate postCommentDidFinish:self withComment:_comment inIdea:_idea withError:error];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	if ([[self response] isOK]) {
+		NSDictionary* resultsd = [[[[NSString alloc] initWithData:_receivedData 
+														 encoding:NSUTF8StringEncoding] autorelease] JSONValue];
+		NSMutableArray* results = [[resultsd objectForKey:@"response"] objectForKey:@"comments"];
+		NSDictionary* commentd = [results objectAtIndex:0];
+		[_comment setKey:[commentd objectForKey:@"id"]];
+		[_idea setCommentCount:[NSNumber numberWithInt:[[_idea commentCount] intValue]+1]];
+		[_delegate postCommentDidFinish:self withComment:_comment inIdea:_idea withError:nil]; 
+	} else {
+		[_delegate postCommentDidFinish:self 
+							withComment:_comment 
+								 inIdea:_idea 
+							  withError:[NSError errorWithDomain:@"comments" 
+															code:[[self response] statusCode]
+														userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+@end
+
+

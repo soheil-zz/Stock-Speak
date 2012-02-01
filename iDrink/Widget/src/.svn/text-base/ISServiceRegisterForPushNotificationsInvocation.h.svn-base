@@ -1,0 +1,22 @@
+//
+//  ISServiceRegisterForPushNotificationsInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 2/24/10.
+//  Copyright 2010 Cavoort, LLC. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "ISServiceAsyncInvocation.h"
+
+@class ISServiceRegisterForPushNotificationsInvocation;
+
+@protocol ISServiceRegisterForPushNotificationsDelegate
+-(void)registerForPushNotificationsDidFinish:(ISServiceRegisterForPushNotificationsInvocation*)invocation withToken:(NSData*)token withError:(NSError*)error;
+@end
+
+@interface ISServiceRegisterForPushNotificationsInvocation : ISServiceAsyncInvocation { 
+	NSData* _token;
+}
+@property (nonatomic,retain) NSData* token;
+@end

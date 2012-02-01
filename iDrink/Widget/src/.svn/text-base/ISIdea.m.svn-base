@@ -1,0 +1,99 @@
+//
+//  ISIdea.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISIdea.h"
+#include "ISTag.h"
+
+#include <stdlib.h>
+
+@implementation ISIdea
+@synthesize key = _key;
+@synthesize category = _category;
+@synthesize timestamp = _timestamp;
+@synthesize title = _title;
+@synthesize text = _text;
+@synthesize author = _author;
+@synthesize url = _url;
+@synthesize votes = _votes;
+@synthesize vote = _vote;
+
+@synthesize commentCount = _commentCount;
+@synthesize tags = _tags;
+
+-(id)retain {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount],([self retainCount]+1));}
+	return [super retain];
+}
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+
+-(id)init {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	self = [super init];
+	[self setVote:[NSNumber numberWithInt:0]];
+	return self;
+}
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setKey:nil];
+	[self setCategory:nil];
+	[self setTitle:nil];
+	[self setText:nil];
+	[self setAuthor:nil];
+	[self setUrl:nil];
+	[self setVotes:nil];
+	[self setVote:nil];
+	
+	[self setCommentCount:nil];
+	[self setTags:nil];
+	[super dealloc];
+}
+
+-(void)add:(ISTag*)tag {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (!_tags) {
+		_tags = [[NSMutableArray alloc] init];
+	}
+	[_tags addObject:tag];
+}
+
+-(void)remove:(ISTag*)tag {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_tags removeObject:tag];
+}
+
+-(BOOL)isOkToSave {
+	return (_category != 0 && [_title length] && [_text length]);
+}
+
+-(NSString*)tagsText {
+	NSMutableString* text = [[[NSMutableString alloc] initWithCapacity:128] autorelease];
+	int count = [[self tags] count];
+	for (ISTag* tag in [self tags]) {
+		count--;
+		[text appendString:[tag name]];
+		if (count) {
+			[text appendString:@", "];
+		}
+	}
+	return text;
+}
+
+-(NSString*)emailBody {
+	NSMutableString* body = [[[NSMutableString alloc] init] autorelease];
+	[body appendFormat:@"<html><head><title>%@</title></head>", [self title]];
+	[body appendFormat:@"<body><a href=\"%@\">%@</a><br/>",[self url],[self title]];
+	[body appendString:[self text]];
+	[body appendString:@"</body></html>"];
+	return body;
+}
+
+@end

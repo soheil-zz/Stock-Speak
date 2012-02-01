@@ -1,0 +1,19 @@
+//
+//  CAVNSArrayTypeCategory.m
+//  MeasureMe
+//
+//  Created by Jeremy Przasnyski on 3/31/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "CAVNSArrayTypeCategory.h"
+
+@implementation NSArray (Type)
+-(id)firstObjectWithClass:(Class)class {
+	for (NSObject* o in self) {
+		if ([o isKindOfClass:class])  {
+			return o;
+		}
+	}
+	return nil;
+}
+@end

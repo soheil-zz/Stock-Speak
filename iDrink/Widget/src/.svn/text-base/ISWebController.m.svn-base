@@ -1,0 +1,37 @@
+//
+//  ISWebController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISWebController.h"
+#import "ISServiceConstants.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@implementation ISWebController
+@synthesize web = _web;
+
++(ISWebController*)openWithin:(UINavigationController*)nav withOwner:(id)owner {
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"IdeaScaleDotCom" owner:self options:nil];
+	ISWebController* controller = [wired firstObjectWithClass:[ISWebController class]];
+	[nav pushViewController:controller animated:YES];
+	return controller;
+}
+
+-(void)viewDidLoad {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setTitle:@"IdeaScale.com"];
+	[_web loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:kISWebURL]]];
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[self navigationController] setToolbarHidden:YES animated:YES];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+	return YES;
+}
+
+@end

@@ -1,0 +1,34 @@
+//
+//  ISTag.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISTag.h"
+#include <stdlib.h>
+
+NSMutableArray* gISHackedTags;
+
+@implementation ISTag
+@synthesize name = _name;
+@synthesize count = _count;
+@synthesize votes = _votes;
+
++(ISTag*)tag:(NSString*)name withCount:(NSUInteger)count withVotes:(NSUInteger)votes {
+	ISTag* tag = [[[ISTag alloc] init] autorelease];
+	[tag setName:name];
+	[tag setCount:[NSNumber numberWithInt:count]];
+	[tag setVotes:[NSNumber numberWithInt:votes]];
+	return tag;
+}
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setName:nil];
+	[self setCount:nil];
+	[self setVotes:nil];
+	[super dealloc];
+}
+
+@end

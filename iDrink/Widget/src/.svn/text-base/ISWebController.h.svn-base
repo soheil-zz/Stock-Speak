@@ -1,0 +1,15 @@
+//
+//  ISWebController.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@interface ISWebController : UIViewController {
+	UIWebView* _web;
+}
++(ISWebController*)openWithin:(UINavigationController*)nav withOwner:(id)owner;
+@property (nonatomic,assign) IBOutlet UIWebView* web;
+@end

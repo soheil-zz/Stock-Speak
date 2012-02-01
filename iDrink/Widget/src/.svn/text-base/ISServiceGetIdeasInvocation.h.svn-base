@@ -1,0 +1,30 @@
+//
+//  ISServiceGetIdeasInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceAsyncInvocation.h"
+
+#define kISServiceGetIdeasCmd		@"getIdeas"
+#define kISServiceGetIdeasCmdTop	@"getTopIdeas"
+#define kISServiceGetIdeasCmdRecent @"getRecentIdeas"
+
+@class ISServiceGetIdeasInvocation;
+@class ISIdea;
+@class ISCategory;
+
+@protocol ISServiceGetIdeasDelegate
+-(void)getIdeasDidFinish:(ISServiceGetIdeasInvocation*)invocation 
+			   withIdeas:(NSMutableArray*)ideas withError:(NSError*)error;
+@end
+
+@interface ISServiceGetIdeasInvocation : ISServiceAsyncInvocation {
+	NSMutableArray* _ideas;
+	ISCategory* _category;
+}
+@property (nonatomic,retain) NSMutableArray* ideas;
+@property (nonatomic,retain) ISCategory* category;
+@end

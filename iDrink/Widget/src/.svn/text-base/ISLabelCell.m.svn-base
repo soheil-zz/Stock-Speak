@@ -1,0 +1,32 @@
+//
+//  ISLabelCell.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISLabelCell.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@implementation ISLabelCell
+@synthesize label = _label;
+@synthesize text = _text;
+
++(ISLabelCell*)cellWithOwner:(id)owner {
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"LabelCell" owner:owner options:nil];
+	ISLabelCell* cell = [wired firstObjectWithClass:[UITableViewCell class]];
+	return cell;
+}
+
+-(void)populateWithText:(NSString*)text {
+	if (!text || ![text length]) {
+		[_label setHidden:NO];
+		[_text setText:@""];
+	} else {
+		[_label setHidden:YES];
+		[_text setText:text];
+	}
+}
+
+@end

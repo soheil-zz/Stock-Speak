@@ -1,0 +1,61 @@
+//
+//  ISIdea+UI.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/3/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISIdea+UI.h"
+#import "ISUser.h"
+#import "ISCategory.h"
+
+@implementation ISIdea (UI)
+
+-(UIImage*)cornerIcon {
+	if ([[self author] authenticated]) {
+		return [UIImage imageNamed:@"corner-star-gold.png"];
+	} else if ([[self vote] intValue] > 0) {
+		return [UIImage imageNamed:@"corner-star-green.png"];
+	} else if ([[self vote] intValue] < 0) {
+		return [UIImage imageNamed:@"corner-star-red.png"];
+	} else {
+		return nil;
+	}	
+}
+
+-(UIImage*)categoryIcon {
+	// Hack - pull icon from 'bug | feature' tag
+	for (ISTag* tag in [self tags]) {
+		if ([[tag name] caseInsensitiveCompare:@"bug"] == NSOrderedSame) {
+			return [UIImage imageNamed:@"48px-Crystal_Clear_action_flag.png"];
+		} else if ([[tag name] caseInsensitiveCompare:@"feature"] == NSOrderedSame) {
+			return [UIImage imageNamed:@"48px-Crystal_Clear_app_ktip.png"];
+		}
+	}
+	return [_category icon];
+}
+
+-(NSInteger)hackQuantify {
+	for (ISTag* tag in [self tags]) {
+		if ([[tag name] caseInsensitiveCompare:@"bug"] == NSOrderedSame) {
+			return [[self votes] intValue];
+		} else if ([[tag name] caseInsensitiveCompare:@"feature"] == NSOrderedSame) {
+			return [[self votes] intValue] + 1000;
+		}
+	}
+	return [[self votes] intValue];
+}
+
+-(NSComparisonResult)compareTo:(ISIdea*)that {
+	NSInteger diff = [self hackQuantify] - [that hackQuantify];
+	if (diff == 0) {
+		return NSOrderedSame;
+	} else if (diff >= 0) {
+		return NSOrderedAscending;
+	} else {
+		return NSOrderedDescending;
+	}
+}
+
+@end

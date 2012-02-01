@@ -1,0 +1,52 @@
+//
+//  ISStore.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/11/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
+
+#define kISStoreDefaultStoreName @"ideascale.sqlite"
+
+@class ISIdea;
+@class ISCategory;
+@class ISTag;
+@class ISUser;
+@class ISComment;
+
+@interface ISStore : NSObject {  
+	NSManagedObjectModel *_model;
+	NSManagedObjectContext *_context;
+	NSPersistentStoreCoordinator *_coordinator;
+	
+	ISCategory* _defaultCategory;
+	NSMutableDictionary* _categories; //TODO: put in CoreData
+}
+@property (nonatomic, retain) NSManagedObjectModel *model;
+@property (nonatomic, retain) NSManagedObjectContext *context;
+@property (nonatomic, retain) NSPersistentStoreCoordinator *coordinator;
+@property (nonatomic,retain) ISCategory* defaultCategory;
+
+-(ISUser*)authenticatedUser;
+
+-(ISIdea*)newIdea;
+-(ISIdea*)ideaForKey:(NSNumber*)key;
+
+-(NSArray*)categories;
+-(ISCategory*)defaultCategory;
+-(ISCategory*)categoryForKey:(NSNumber*)key;
+
+-(ISTag*)tag:(NSString*)name;
+
+-(ISUser*)newUser;
+-(ISUser*)userForKey:(NSNumber*)key withDeviceId:(NSString*)deviceId;
+
+-(ISComment*)newComment;
+-(ISComment*)commentForKey:(NSNumber*)key;
+
+-(id)initWithStoreName:(NSString*)storeName;
++(NSString*)path:(NSString*)storeName;
++(NSString*)documentsDirectory;
+@end

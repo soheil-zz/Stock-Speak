@@ -1,0 +1,19 @@
+//
+//  ISCategoryPickerRow.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/20/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISCategory;
+
+@interface ISCategoryPickerRow : UIView {
+	UIImageView* _icon;
+	UILabel* _label;
+}
+@property (nonatomic,assign) IBOutlet UIImageView* icon;
+@property (nonatomic,assign) IBOutlet UILabel* label;
+-(void)populateWithCategory:(ISCategory*)category;
+@end

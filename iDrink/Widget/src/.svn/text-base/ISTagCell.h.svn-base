@@ -1,0 +1,32 @@
+//
+//  ISTagCell.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISTagCell;
+
+@protocol ISTagCellDelegate
+-(void)tagCell:(ISTagCell*)cell didBeginEditingWithOriginal:(NSString*)original;
+-(void)tagCell:(ISTagCell*)cell wasClearedWithOriginal:(NSString*)original;
+-(void)tagCell:(ISTagCell*)cell wasModifiedWithText:(NSString*)text withOriginalValue:(NSString*)original;
+-(void)tagCell:(ISTagCell*)cell willFinishEditingWithText:(NSString*)text withOriginalValue:(NSString*)original usingComma:(BOOL)comma;
+-(void)tagCell:(ISTagCell*)cell didFinishEditingWithText:(NSString*)text withOriginalValue:(NSString*)original usingComma:(BOOL)comma;
+@end
+
+@interface ISTagCell : UITableViewCell {
+	id <ISTagCellDelegate> _delegate;
+	UITextField* _field;
+	NSString* _original;
+	
+	BOOL _canEndEditing;
+}
++(ISTagCell*)cellWithOwner:(id)owner;
+@property (nonatomic,assign) IBOutlet id <ISTagCellDelegate> delegate;
+@property (nonatomic,assign) IBOutlet UITextField* field;
+@property (nonatomic,retain) NSString* original;
+ -(void)populateWithText:(NSString*)text withPlaceholder:(NSString*)placeholder;
+@end

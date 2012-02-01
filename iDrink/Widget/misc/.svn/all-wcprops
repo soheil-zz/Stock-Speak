@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/14/trunk/Foundation/misc
+END
+CAVNSArrayTypeCategory.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/6/trunk/Foundation/misc/CAVNSArrayTypeCategory.h
+END
+NSDateDayCategory.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/6/trunk/Foundation/misc/NSDateDayCategory.h
+END
+NSData+Hex.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/6/trunk/Foundation/misc/NSData+Hex.h
+END
+JSONUtils.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/14/trunk/Foundation/misc/JSONUtils.h
+END
+ISO8601DateFormatter.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/6/trunk/Foundation/misc/ISO8601DateFormatter.h
+END
+CAVNSArrayTypeCategory.m
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/6/trunk/Foundation/misc/CAVNSArrayTypeCategory.m
+END
+JSONUtils.m
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/14/trunk/Foundation/misc/JSONUtils.m
+END
+NSData+Hex.m
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/6/trunk/Foundation/misc/NSData+Hex.m
+END
+NSDateDayCategory.m
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/6/trunk/Foundation/misc/NSDateDayCategory.m
+END
+NSHTTPURLResponse+StatusCodes.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/6/trunk/Foundation/misc/NSHTTPURLResponse+StatusCodes.h
+END
+ISO8601DateFormatter.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/6/trunk/Foundation/misc/ISO8601DateFormatter.m
+END
+NSHTTPURLResponse+StatusCodes.m
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/6/trunk/Foundation/misc/NSHTTPURLResponse+StatusCodes.m
+END

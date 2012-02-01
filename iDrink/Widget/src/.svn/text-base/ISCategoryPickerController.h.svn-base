@@ -1,0 +1,37 @@
+//
+//  ISCategoryPickerController.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/20/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISCategory;
+@class ISCategoryPickerController;
+
+@protocol ISCategoryPickerDelegate
+-(void)categoryPicker:(ISCategoryPickerController*)picker didPickCategory:(ISCategory*)category;
+-(void)categoryPicker:(ISCategoryPickerController*)picker didFinishPickingCategory:(ISCategory*)category;
+-(void)categoryPicker:(ISCategoryPickerController*)picker didFinishAnimatingOffScreenWithCategory:(ISCategory*)category;
+@end
+
+@interface ISCategoryPickerController : NSObject { 
+	id <ISCategoryPickerDelegate> _parent;
+	UIBarButtonItem* _done;
+	UIBarButtonItem* _oldRightBarButtonItem;
+	UIPickerView* _view;
+	NSArray* _categories;
+}
++(ISCategoryPickerController*)showInViewController:(UIViewController*)parent 
+			 withCategories:(NSArray*)categories 
+	   withSelectedCategory:(ISCategory*)category;
+@property (nonatomic,assign) IBOutlet id <ISCategoryPickerDelegate> parent;
+@property (nonatomic,retain) IBOutlet UIBarButtonItem* done;
+@property (nonatomic,retain) UIBarButtonItem* oldRightBarButtonItem;
+@property (nonatomic,retain) IBOutlet UIPickerView* view;
+@property (nonatomic,retain) IBOutlet NSArray* categories;
+-(void)pickerWillLoadWithCategory:(ISCategory*)category;
+-(ISCategory*)category;
+-(IBAction)done:(id)sender;
+@end

@@ -1,0 +1,57 @@
+//
+//  ISServiceAsyncInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceConstants.h"
+#import "ISO8601DateFormatter.h"
+#import "NSHTTPURLResponse+StatusCodes.h"
+#import "NSObject+SBJSON.h"
+#import "NSString+SBJSON.h"
+#import "JSON.h"
+
+@class ISIdea;
+@class ISUser;
+
+@class ISStore;
+@class ISServiceAsyncInvocation;
+
+@protocol ISServiceAsyncInvocationFinalizer
+-(void)finalize:(ISServiceAsyncInvocation*)invocation;
+@end
+
+@interface ISServiceAsyncInvocation : NSObject {
+	ISStore* _store;
+	
+	id <ISServiceAsyncInvocationFinalizer> _finalizer;
+	id _delegate;
+	NSString* _key;
+	NSString* _apiKey;
+	NSDate* _timestamp;
+	NSHTTPURLResponse* _response;
+	NSMutableData* _receivedData;
+}
+@property (nonatomic, assign) ISStore* store;
+@property (nonatomic, assign) id <ISServiceAsyncInvocationFinalizer> finalizer;
+@property (nonatomic, assign) id delegate;
+@property (nonatomic, retain) NSString* key;
+@property (nonatomic, retain) NSString* apiKey;
+@property (nonatomic, retain) NSDate* timestamp;
+@property (nonatomic, retain) NSHTTPURLResponse* response;
+@property (nonatomic, retain) NSMutableData *receivedData;
+
+-(BOOL)isReady;
+-(void)invoke;
+
+-(void)post:(NSString*)path body:(NSString*)body;
+-(void)put:(NSString*)path body:(NSString*)body;
+-(void)get:(NSString*)path;
+
+-(ISIdea*)populateIdea:(ISIdea*)idea fromJSONDict:(NSDictionary*)ideaD;
+-(ISIdea*)ideaFromJSONDict:(NSDictionary*)ideaD;
+-(ISUser*)userFromJSONDict:(NSDictionary*)userD;
+
+@end

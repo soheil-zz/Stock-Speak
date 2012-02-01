@@ -1,0 +1,19 @@
+//
+//  ISTag.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@interface ISTag : NSObject { 
+	NSString* _name;
+	NSNumber* _count;
+	NSNumber* _votes;
+}
+@property (nonatomic,retain) NSString* name;
+@property (nonatomic,retain) NSNumber* count;
+@property (nonatomic,retain) NSNumber* votes;
++(ISTag*)tag:(NSString*)name withCount:(NSUInteger)count withVotes:(NSUInteger)votes;
+@end

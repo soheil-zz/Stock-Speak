@@ -1,0 +1,64 @@
+//
+//  ISUser.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISUser.h"
+
+@implementation ISUser
+@dynamic key;
+@dynamic deviceId;
+@dynamic name;
+@dynamic ideaCount;
+@dynamic voteCount;
+@dynamic url;
+
+#pragma mark ISUser Class Methods
+
++(NSString*)currentDeviceId {
+	return [[[UIDevice currentDevice] uniqueIdentifier] lowercaseString];
+}
+
+#pragma mark NSObject
+
+-(id)retain {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount],([self retainCount]+1));}
+	return [super retain];
+}
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setKey:nil];
+	[self setDeviceId:nil];
+	[self setName:nil];
+	[self setIdeaCount:nil];
+	[self setVoteCount:nil];
+	[self setUrl:nil];
+	[super dealloc];
+}
+
+#pragma mark ISUser
+
+-(BOOL)authenticated {
+	return [[ISUser currentDeviceId] caseInsensitiveCompare:deviceId] == NSOrderedSame;
+}
+
+-(NSString*)description {
+	return [NSString stringWithFormat:@"[key=%@,deviceId=%@,name=%@,auth?=%@,username=%@,count=%@,votes=%@]"
+			,key?[NSString stringWithFormat:@"%@",key]:@"<none>"
+			,deviceId?[NSString stringWithFormat:@"%@",deviceId]:@"<none>"
+			,name?name:@"<none>"
+			,[self authenticated]?@"YES":@"NO"
+			,ideaCount?[NSString stringWithFormat:@"%@",ideaCount]:@"<none>"
+			,voteCount?[NSString stringWithFormat:@"%@",voteCount]:@"<none>"];
+	
+}
+
+@end

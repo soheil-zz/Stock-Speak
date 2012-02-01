@@ -1,0 +1,15 @@
+//
+//  ISIdea+UI.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/3/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "ISIdea.h"
+
+@interface ISIdea (UI)
+-(UIImage*)cornerIcon;
+-(UIImage*)categoryIcon;
+@end

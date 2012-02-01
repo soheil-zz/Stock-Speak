@@ -1,0 +1,83 @@
+//
+//  ISServiceRegisterForPushNotificationsInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 2/24/10.
+//  Copyright 2010 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISServiceRegisterForPushNotificationsInvocation.h"
+#import "ISUser.h"
+#import "NSData+Hex.h"
+
+@interface ISServiceRegisterForPushNotificationsInvocation (private)
+-(NSString*)body;
+@end
+
+@implementation ISServiceRegisterForPushNotificationsInvocation
+@synthesize token = _token;
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_token release];
+	[super dealloc];
+}
+
+-(void)invoke {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSString* path = [NSString stringWithFormat:@"ideascale.push.register?apiKey=%@",_apiKey];
+	[self post:path body:[self body]];
+}
+
+-(NSString*)body {
+	NSMutableDictionary* bodyD = [[[NSMutableDictionary alloc] init] autorelease];
+	[bodyD setObject:[ISUser currentDeviceId] forKey:@"iPhoneID"];
+	[bodyD setObject:[_token hexString] forKey:@"iPhoneAPNSToken"];
+	return [bodyD JSONRepresentation];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate registerForPushNotificationsDidFinish:self 
+											   withToken:_token 
+											   withError:[NSError errorWithDomain:@"service" 
+														   code:[[self response] statusCode] 
+													   userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate registerForPushNotificationsDidFinish:self withToken:_token withError:nil];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	if ([[self response] isOK]) {
+		NSDictionary* resultsd = [[[[NSString alloc] initWithData:_receivedData 
+														 encoding:NSUTF8StringEncoding] autorelease] JSONValue];
+		NSError* error = nil;
+		if (![[resultsd objectForKey:@"result"] isEqualToString:@"success"]) {
+			error = [NSError errorWithDomain:@"service" code:[[self response] statusCode] userInfo:resultsd];
+		}
+		[_delegate registerForPushNotificationsDidFinish:self withToken:_token withError:error];
+	} else {
+		[_delegate registerForPushNotificationsDidFinish:self withToken:_token 
+											   withError:[NSError errorWithDomain:@"service" 
+																			 code:[[self response] statusCode] 
+																		 userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+
+
+@end

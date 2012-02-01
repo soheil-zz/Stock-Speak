@@ -1,0 +1,36 @@
+//
+//  ISIdeaCell.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISIdea;
+
+@interface ISIdeaCell : UITableViewCell {
+	UIImageView* _iconView;
+	UILabel* _countLabel;
+	UILabel* _titleLabel;
+	UILabel* _descriptionLabel;
+	
+	UIImageView* _commentsIcon;
+	UILabel* _commentCountLabel;
+	UILabel* _tagsLabel;
+	
+	UIImageView* _cornerIcon;
+}
+@property (nonatomic,assign) IBOutlet UIImageView* iconView;
+@property (nonatomic,assign) IBOutlet UILabel* countLabel;
+@property (nonatomic,assign) IBOutlet UILabel* titleLabel;
+@property (nonatomic,assign) IBOutlet UILabel* descriptionLabel;
+
+@property (nonatomic,assign) IBOutlet UIImageView* commentsIcon;
+@property (nonatomic,assign) IBOutlet UILabel* commentCountLabel;
+@property (nonatomic,assign) IBOutlet UILabel* tagsLabel;
+
+@property (nonatomic,assign) IBOutlet UIImageView* cornerIcon;
+
+-(void)update:(ISIdea*)idea;
+@end

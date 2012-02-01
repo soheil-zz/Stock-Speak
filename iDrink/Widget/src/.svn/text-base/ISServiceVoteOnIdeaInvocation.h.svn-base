@@ -1,0 +1,24 @@
+//
+//  ISServiceVoteOnIdeaInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/2/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceAsyncInvocation.h"
+
+@class ISIdea;
+@class ISServiceVoteOnIdeaInvocation;
+
+@protocol ISServiceVoteOnIdeaDelegate
+-(void)voteOnIdeaDidFinish:(ISServiceVoteOnIdeaInvocation*)invocation withIdea:(ISIdea*)idea withVote:(NSInteger)vote withError:(NSError*)error;
+@end
+
+@interface ISServiceVoteOnIdeaInvocation : ISServiceAsyncInvocation {
+	ISIdea* _idea;
+	NSInteger _vote;
+}
+@property (nonatomic,retain) ISIdea* idea;
+@property (nonatomic,assign) NSInteger vote;
+@end

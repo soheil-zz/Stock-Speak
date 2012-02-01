@@ -1,0 +1,3 @@
+#define kISServiceURLPrefix @"https://ideascale.com/a/api/"
+#define kISWebURL @"http://ideascale.com"
+#define kISClientVersion @"0.20"

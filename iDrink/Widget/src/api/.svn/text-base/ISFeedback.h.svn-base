@@ -1,0 +1,24 @@
+//
+//  ISFeedback.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/5/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISService;
+
+@interface ISFeedback : NSObject { 
+	ISService* _service;
+	NSInteger _targetIdeaKey;
+	UIViewController* _targetViewController;
+}
++(ISFeedback*)initSharedInstance:(NSString*)apiKey;
++(ISFeedback*)sharedInstance;
+-(id)initWithApiKey:(NSString*)apiKey;
+-(UINavigationController*)pushOntoViewController:(UIViewController*)viewController;
+-(void)registerForPushNotifications:(NSData*)token;
+-(BOOL)isFeedbackPushNotification:(NSDictionary*)userInfo;
+-(void)handleFeedbackPushNotification:(NSDictionary*)userInfo inViewController:(UIViewController*)viewController prompt:(BOOL)prompt;
+@end

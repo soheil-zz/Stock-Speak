@@ -1,0 +1,103 @@
+//
+//  ISTextEditController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/20/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISTextEditController.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@interface ISTextEditController (private)
+-(UITextView*)textView;
+-(void)keyboardDidShow:(NSNotification*)notification;
+-(void)keyboardDidHide:(NSNotification*)notification;
+@end
+
+@implementation ISTextEditController
+@synthesize delegate = _delegate;
+@synthesize target = _target;
+
+#pragma mark NSObject
+
+-(void)dealloc {
+	[self setTarget:nil];
+	[super dealloc];
+}
+
+#pragma mark UIViewController
+
+-(void)viewDidLoad {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(keyboardDidShow:)
+												 name: UIKeyboardDidShowNotification object:nil];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(keyboardDidHide:)
+												 name:UIKeyboardDidHideNotification object:nil];
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[self navigationController] setToolbarHidden:YES animated:YES];
+	[[self textView] becomeFirstResponder];
+}
+
+-(void)viewWillDisappear:(BOOL)animated {
+	[_delegate textEditWillCloseWithText:[[self textView] text] withTarget:_target];
+}
+
+-(void)viewDidUnload {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+	return YES;
+}
+
+#pragma mark ISTextEditController
+
++(void)pushOntoViewController:(UIViewController*)parent withTarget:(id)target withText:(NSString*)text withTitle:(NSString*)title {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSMutableDictionary* injections = [[[NSMutableDictionary alloc] init] autorelease];
+	[injections setObject:target forKey:@"target"];
+	NSDictionary* proxied = [NSDictionary dictionaryWithObject:injections forKey:UINibExternalObjects];
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"TextEditor" owner:parent options:proxied];
+	ISTextEditController* controller = [wired firstObjectWithClass:[ISTextEditController class]];
+	[controller setTitle:title];
+	[[controller textView] setText:text];
+	[[parent navigationController] pushViewController:controller animated:YES];
+}
+
+-(IBAction)save:(id)sender {
+	[_delegate textEditDidFinishWithText:[[self textView] text] withTarget:_target];
+	[[self navigationController] popViewControllerAnimated:YES];
+}
+
+#pragma mark ISTextEditController (private)
+-(UITextView*)textView {
+	return (UITextView*)[self view];
+}
+
+-(void)keyboardDidShow:(NSNotification*)notification {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (_keyboardShowing) {return;}
+	NSValue* bounds = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
+	CGSize keyboardSize = [bounds CGRectValue].size;
+	CGRect frame = [[self view] frame];
+	_nokeyboardHeight = frame.size.height;
+	frame.size.height = _nokeyboardHeight - keyboardSize.height;
+	[[self view] setFrame:frame];
+	_keyboardShowing = YES;
+}
+
+-(void)keyboardDidHide:(NSNotification*)notification {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (!_keyboardShowing) {return;}
+	CGRect frame = [self view].frame;
+	frame.size.height = _nokeyboardHeight;
+	[[self view] setFrame:frame];
+	_keyboardShowing = NO;	
+}
+
+@end

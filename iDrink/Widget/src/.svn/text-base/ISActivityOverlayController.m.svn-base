@@ -1,0 +1,97 @@
+//
+//  ISActivityOverlayController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/4/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISActivityOverlayController.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@interface ISActivityOverlayController (private)
+-(void)showAnimationDidFinish;
+-(void)hideAnimationDidFinish;
+@end
+
+@implementation ISActivityOverlayController
+@synthesize container = _container;
+@synthesize view = _view;
+@synthesize label = _label;
+@synthesize activity = _activity;
+@synthesize resultIcon = _resultIcon;
+
++(ISActivityOverlayController*)presentActivityOverViewController:(UIViewController*)viewController 
+													   withLabel:(NSString*)label {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"Activity" owner:viewController options:nil];
+	ISActivityOverlayController* controller = [wired firstObjectWithClass:[ISActivityOverlayController class]];
+	[controller presentActivityWithLabel:label];
+	//[controller release]; // Not entirely sure why this line is needed. Am I missing a retain/release combo somewhere?
+	return controller;
+}
+
+-(id)retain {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount],([self retainCount]+1));}
+	return [super retain];
+}
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setContainer:nil];
+	[self setView:nil];
+	[self setActivity:nil];
+	[self setResultIcon:nil];
+	[_target release]; _target = nil;
+	_selector = nil;
+	[super dealloc];
+}
+
+-(void)presentActivityWithLabel:(NSString*)label {
+	[_label setText:label];
+	[_view setAlpha:0.0f];
+	[[[_container view] window] addSubview:_view];
+	[UIView beginAnimations:@"presenting" context:self];
+	[UIView setAnimationDuration:2.0];
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(showAnimationDidFinish)];
+	[_view setAlpha:1.0f];
+	[UIView commitAnimations];
+}
+
+-(void)showAnimationDidFinish {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+}
+
+-(void)dismissActivityWithTarget:(id <NSObject>)target usingSelector:(SEL)selector withLabel:(NSString*)label completedOK:(BOOL)ok {
+	_target = [target retain];
+	_selector = selector;
+	[self setResultIcon:[[[UIImageView alloc] init] autorelease]];
+	[_resultIcon setFrame:[_activity frame]];
+	[_resultIcon setImage:[UIImage imageNamed:ok?@"activity-icons-result-ok.png":@"activity-icons-result-problem.png"]];
+	[_label setText:label];
+	[_activity removeFromSuperview];
+	[_view addSubview:_resultIcon];
+	[UIView beginAnimations:@"dismissing" context:self];
+	[UIView setAnimationDuration:0.5];
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(hideAnimationDidFinish)];
+	[_view setAlpha:0.0f];
+	[UIView commitAnimations];
+}
+
+-(void)hideAnimationDidFinish {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_view removeFromSuperview];
+	if (_target) {
+		[_target performSelector:_selector];
+		[_target release];
+		_target = nil;
+	}
+}
+
+@end

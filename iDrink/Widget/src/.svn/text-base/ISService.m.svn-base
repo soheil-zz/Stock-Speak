@@ -1,0 +1,137 @@
+//
+//  ISService.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISService.h"
+#import "ISCategory.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@interface ISService (private) <ISServiceAsyncInvocationFinalizer>
+
+-(void)invoke:(ISServiceAsyncInvocation*)invocation withDelegate:(id)delegate;
+-(void)getIdeasWithDelegate:(id <ISServiceGetIdeasDelegate>)delegate withCommand:(NSString*)command;
+@end
+
+@implementation ISService
+@synthesize apiKey = _apiKey;
+@synthesize store = _store;
+
++(ISService*)serviceWithApiKey:(NSString*)apiKey {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	NSMutableDictionary* injections = [[[NSMutableDictionary alloc] init] autorelease];
+	[injections setObject:apiKey forKey:@"apiKey"];
+	NSDictionary* proxied = [NSDictionary dictionaryWithObject:injections forKey:UINibExternalObjects];
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"ISService" owner:nil options:proxied];
+	return [wired firstObjectWithClass:[ISService class]];
+}
+
+-(id)init {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	self = [super init];
+	_invocations = [[NSMutableDictionary alloc] init];
+	return self;
+}
+
+-(id)retain {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount],([self retainCount]+1));}
+	return [super retain];
+}
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setApiKey:nil];
+	[_invocations release]; _invocations = nil;
+	[self setStore:nil];
+	[super dealloc];
+}
+
+-(void)finalize:(ISServiceAsyncInvocation*)invocation {
+	@synchronized (self) {
+		[invocation setDelegate:nil];
+		[_invocations removeObjectForKey:[invocation key]];
+	}
+	if (LOG) {NSLog(@"%s - Ivocation Count: %d => %d",__FUNCTION__,[_invocations count]+1,[_invocations count]);}
+}
+
+-(void)invoke:(ISServiceAsyncInvocation*)invocation withDelegate:(id)delegate {
+	[invocation setStore:_store];
+	[invocation setApiKey:_apiKey];
+	[invocation setDelegate:delegate];
+	[invocation setFinalizer:self];
+	@synchronized (self) {
+		[_invocations setObject:invocation forKey:[invocation key]];
+	}
+	if (LOG) {NSLog(@"%s - Ivocation Count: %d => %d",__FUNCTION__,[_invocations count]-1,[_invocations count]);}
+	[invocation invoke];
+}
+
+-(ISUser*)authenticatedUser {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	return [_store authenticatedUser];
+}
+
+-(void)registerForPushNotificationsWithDelegate:(id <ISServiceRegisterForPushNotificationsDelegate>)delegate withToken:(NSData*)token {
+	if (LOG) {NSLog(@"%s : token=%@",__FUNCTION__,token);}
+	ISServiceRegisterForPushNotificationsInvocation* invocation = [[[ISServiceRegisterForPushNotificationsInvocation alloc] init] autorelease];
+	invocation.token = token;
+	[self invoke:invocation withDelegate:delegate];
+}
+
+// There's no good place to handle this at the moment - just consume it.
+-(void)registerForPushNotificationsDidFinish:(ISServiceRegisterForPushNotificationsInvocation*)invocation withToken:(NSData*)token withError:(NSError*)error {
+	if (LOG) {NSLog(@"%s : token=%@",__FUNCTION__,token);}
+}
+
+-(void)getCategoriesWithDelegate:(id <ISServiceGetCategoriesDelegate>)delegate {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISServiceGetCategoriesInvocation* invocation = [[[ISServiceGetCategoriesInvocation alloc] init] autorelease];
+	[self invoke:invocation withDelegate:delegate];
+}
+
+-(void)getIdeasWithDelegate:(id <ISServiceGetIdeasDelegate>)delegate inCategory:(ISCategory*)category {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISServiceGetIdeasInvocation* invocation = [[[ISServiceGetIdeasInvocation alloc] init] autorelease];
+	[invocation setCategory:category];
+	[self invoke:invocation withDelegate:delegate];
+}
+
+-(void)postIdea:(ISIdea*)idea withDelegate:(id <ISServicePostIdeaDelegate>)delegate {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISServicePostIdeaInvocation* invocation = [[[ISServicePostIdeaInvocation alloc] init] autorelease];
+	[invocation setIdea:idea];
+	[self invoke:invocation withDelegate:delegate];
+}
+
+-(void)getCommentsForIdea:(ISIdea*)idea withDelegate:(id <ISServiceGetCommentsDelegate>)delegate {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISServiceGetCommentsInvocation* invocation = [[[ISServiceGetCommentsInvocation alloc] init] autorelease];
+	[invocation setIdea:idea];
+	[self invoke:invocation withDelegate:delegate];
+}
+
+-(void)postComment:(ISComment*)comment inIdea:(ISIdea*)idea withDelegate:(id <ISServicePostCommentDelegate>)delegate {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISServicePostCommentInvocation* invocation = [[[ISServicePostCommentInvocation alloc] init] autorelease];
+	[invocation setIdea:idea];
+	[invocation setComment:comment];
+	[self invoke:invocation withDelegate:delegate];
+}
+
+-(void)voteOnIdea:(ISIdea*)idea withVote:(NSInteger)vote withDelegate:(id <ISServiceVoteOnIdeaDelegate>)delegate {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISServiceVoteOnIdeaInvocation* invocation = [[[ISServiceVoteOnIdeaInvocation alloc] init] autorelease];
+	[invocation setIdea:idea];
+	[invocation setVote:vote];
+	[self invoke:invocation withDelegate:delegate];
+}
+
+@end

@@ -1,0 +1,37 @@
+//
+//  ISIdeasController.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/6/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+@class ISService;
+@class ISIdeasController;
+
+@interface ISIdeasController : UITableViewController {
+	UIViewController* _container;
+	
+	ISService* _service;
+	UITableView* _ideasTable;
+	
+	NSArray* _categories;
+	NSMutableArray* _ideas;
+	
+	NSInteger ideaToLoadKey;
+}
++(UINavigationController*)pushOntoViewController:(UIViewController*)viewController withService:(ISService*)service andLoadIdea:(NSInteger)ideaKey;
++(UINavigationController*)pushOntoViewController:(UIViewController*)viewController withService:(ISService*)service;
+@property (nonatomic,retain) IBOutlet UIViewController* container;
+@property (nonatomic,retain) IBOutlet ISService* service;
+@property (nonatomic,assign) IBOutlet UITableView* ideasTable;
+@property (nonatomic,retain) NSMutableArray* ideas;
+@property (nonatomic,assign) NSInteger ideaToLoadKey;
+
+-(IBAction)closeFeedback:(id)sender;
+-(IBAction)refresh:(id)sender;
+-(IBAction)composeIdea:(id)sender;
+-(IBAction)signIn:(id)sender;
+-(IBAction)visitIdeaScaleDotCom:(id)sender;
+@end

@@ -1,0 +1,82 @@
+//
+//  ISIdeaController.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/2/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISService;
+@class ISIdea;
+@class ISCommentCell;
+@class ISComment;
+@class ISActivityOverlayController;
+
+@interface ISIdeaController : UIViewController {
+	ISService* _service;
+	ISIdea* _idea;
+	UIImageView* _iconView;
+	UILabel* _countLabel;
+	UILabel* _titleLabel;
+	UILabel* _tagsLabel;
+	
+	UIImageView* _commentsIcon;
+	UILabel* _commentCountLabel;
+	
+	UIImageView* _cornerIcon;
+	
+	UITextView* _textView;
+	UIButton* _upButton;
+	UIButton* _dnButton;
+	
+	UIBarButtonItem* _doneButton;
+	UIBarButtonItem* _addCommentButton;
+	NSArray* _toolbarItemsForIdea;
+	NSArray* _toolbarItemsForComments;
+	
+	UIView* _commentsWrapper;
+	UITableView* _commentsTable;
+	
+	NSMutableArray* _comments;
+	ISCommentCell* _heightCalculatorCell;
+	
+	ISActivityOverlayController* _activity;
+}
+@property (nonatomic,retain) IBOutlet ISService* service;
+@property (nonatomic,retain) IBOutlet ISIdea* idea;
+@property (nonatomic,assign) IBOutlet UIImageView* iconView;
+@property (nonatomic,assign) IBOutlet UILabel* countLabel;
+@property (nonatomic,assign) IBOutlet UILabel* titleLabel;
+@property (nonatomic,assign) IBOutlet UILabel* tagsLabel;
+@property (nonatomic,assign) IBOutlet UIImageView* commentsIcon;
+@property (nonatomic,assign) IBOutlet UILabel* commentCountLabel;
+
+@property (nonatomic,assign) IBOutlet UIImageView* cornerIcon;
+
+@property (nonatomic,assign) IBOutlet UITextView* textView;
+@property (nonatomic,retain) IBOutlet UIButton* upButton;
+@property (nonatomic,retain) IBOutlet UIButton* dnButton;
+
+@property (nonatomic,retain) IBOutlet UIBarButtonItem* doneButton;
+@property (nonatomic,retain) IBOutlet UIBarButtonItem* addCommentButton;
+
+@property (nonatomic,retain) IBOutlet UIView* commentsWrapper;
+@property (nonatomic,assign) IBOutlet UITableView* commentsTable;
+
+@property (nonatomic,retain) IBOutlet NSArray* comments;
+@property (nonatomic,retain) IBOutlet ISCommentCell* heightCalculatorCell;
+
+@property (nonatomic,retain) ISActivityOverlayController* activity;
+
+-(IBAction)edit:(id)sender; // Not available 1.0
+-(IBAction)voteUp:(id)sender;
+-(IBAction)voteDown:(id)sender;
+
+-(IBAction)showComments:(id)sender;
+-(IBAction)hideComments:(id)sender;
+-(IBAction)addComment:(id)sender;
+
+-(IBAction)shareIdea:(id)sender;
+-(IBAction)visitIdeaScaleDotCom:(id)sender;
+@end

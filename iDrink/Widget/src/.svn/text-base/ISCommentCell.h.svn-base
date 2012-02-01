@@ -1,0 +1,20 @@
+//
+//  ISCommentCell.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/3/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@class ISComment;
+
+@interface ISCommentCell : UITableViewCell {
+	UILabel* _commentLabel;
+}
+@property (nonatomic,assign) IBOutlet UILabel* commentLabel;
++(ISCommentCell*)cellWithOwner:(id)owner;
+-(void)populate:(ISComment*)comment;
+-(CGFloat)rowHeightForComment:(ISComment*)comment;
+@end

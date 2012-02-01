@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesStackState
+   version = "1.0">
+   <StackStates>
+      <StackState
+         stackFrameDescription = "-[iDrinkViewController tableView:cellForRowAtIndexPath:]:iDrinkViewController.m">
+         <expressions>
+            <expression
+               value = "[indexPath row]">
+            </expression>
+         </expressions>
+      </StackState>
+      <StackState
+         stackFrameDescription = "-[iDrinkViewController userStartedEnteringText:]:iDrinkViewController.m">
+         <expressions>
+            <expression
+               value = "topFieldBeforeTypingStarted">
+            </expression>
+            <expression
+               value = "topField.text">
+            </expression>
+         </expressions>
+      </StackState>
+   </StackStates>
+</VariablesStackState>

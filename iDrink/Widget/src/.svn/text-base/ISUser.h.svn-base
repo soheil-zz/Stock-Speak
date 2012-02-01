@@ -1,0 +1,27 @@
+//
+//  ISUser.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
+
+@interface ISUser : NSManagedObject {
+	NSNumber* key;
+	NSString* deviceId;
+	NSString* name;
+	NSNumber* ideaCount;
+	NSNumber* voteCount;
+	NSString* url;
+}
++(NSString*)currentDeviceId;
+@property (nonatomic,retain) NSNumber* key;
+@property (nonatomic,retain) NSString* deviceId;
+@property (nonatomic,retain) NSString* name;
+@property (nonatomic,retain) NSNumber* ideaCount;
+@property (nonatomic,retain) NSNumber* voteCount;
+@property (nonatomic,retain) NSString* url;
+-(BOOL)authenticated;
+@end

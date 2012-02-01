@@ -1,0 +1,83 @@
+//
+//  ISServiceGetIdeasInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServiceGetIdeasInvocation.h"
+
+#import "ISStore.h"
+#import "ISIdea.h"
+#import "ISCategory.h"
+#import "ISUser.h"
+
+@interface ISServiceGetIdeasInvocation (private)
+@end
+
+@implementation ISServiceGetIdeasInvocation
+@synthesize ideas = _ideas;
+@synthesize category = _category;
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_category release];
+	[_ideas release];
+	[super dealloc];
+}
+-(void)invoke {
+	NSString* categoryParam = _category ? [NSString stringWithFormat:@"&categoryID=%@",[_category key]] : @"";
+	NSString* iPhoneID = [ISUser currentDeviceId];
+	NSString* path = [NSString stringWithFormat:@"ideascale.ideas.getIdeas?apiKey=%@%@&iPhoneID=%@", _apiKey, categoryParam, iPhoneID];
+	[self get:path];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate getIdeasDidFinish:self 
+						   withIdeas:_ideas 
+						   withError:[NSError errorWithDomain:@"service" 
+														 code:[[self response] statusCode] 
+													 userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate getIdeasDidFinish:self withIdeas:_ideas withError:error];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	if ([[self response] isOK]) {
+		NSString* jsonString = [[[NSString alloc] initWithData:_receivedData encoding:NSUTF8StringEncoding] autorelease];
+		if (LOG) {NSLog(@"%s IDEAS: %@",__FUNCTION__,jsonString);}
+		NSDictionary* resultsd = [jsonString JSONValue];
+		NSMutableArray* ideasarr = [[resultsd objectForKey:@"response"] objectForKey:@"ideas"];
+		_ideas = [[NSMutableArray alloc] initWithCapacity:[ideasarr count]];
+		for (NSDictionary* idead in ideasarr) {
+			[_ideas addObject:[self ideaFromJSONDict:idead]];
+		}
+		[_delegate getIdeasDidFinish:self withIdeas:_ideas withError:nil];
+	} else {
+		[_delegate getIdeasDidFinish:self 
+						   withIdeas:_ideas 
+						   withError:[NSError errorWithDomain:@"ideas" 
+														 code:[[self response] statusCode] 
+													 userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+
+
+
+@end

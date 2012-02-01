@@ -1,0 +1,109 @@
+//
+//  ISTagCell.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISTagCell.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@interface ISTagCell (private)
+-(void)trim;
+@end
+
+@implementation ISTagCell
+@synthesize delegate = _delegate;
+@synthesize field = _field;
+@synthesize original = _original;
+
+#pragma mark NSObject
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_field setDelegate:nil];
+	[self setOriginal:nil];
+	[super dealloc];
+}
+
+#pragma mark ISTagCell
+
++(ISTagCell*)cellWithOwner:(id)owner {
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"TagCell" owner:owner options:nil];
+	ISTagCell* cell = [wired firstObjectWithClass:[ISTagCell class]];
+	return cell;
+}
+
+-(void)populateWithText:(NSString*)text withPlaceholder:(NSString*)placeholder {
+	[self setOriginal:text];
+	[_field setText:text];
+	[_field setPlaceholder:placeholder];
+}
+
+#pragma mark ISTagCell (private)
+-(void)trim {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if ([[_field text] length]) {
+		NSString* trimmed = [[_field text] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+		[_field setText:trimmed];
+		if (![trimmed length]) {
+			[_delegate tagCell:self wasClearedWithOriginal:_original];
+		}
+	}
+}
+
+#pragma mark UITextFieldDelegate (Managing Editing)
+
+-(void)textFieldDidBeginEditing:(UITextField *)textField {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	_canEndEditing = YES;
+	[_delegate tagCell:self didBeginEditingWithOriginal:_original]; 
+}
+
+-(BOOL)textFieldShouldEndEditing:(UITextField *)textField {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	return _canEndEditing;
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self trim];
+	[_delegate tagCell:self didFinishEditingWithText:[_field text] withOriginalValue:_original usingComma:NO];
+}
+
+#pragma mark UITextFieldDelegate (Editing the Text Field's Text)
+
+- (BOOL)textField:(UITextField*)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString*)string {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	_canEndEditing = NO;
+	BOOL shouldChangeCharactersInRange = YES;
+	if ([string isEqualToString:@","]) {
+		if (LOG) {NSLog(@"%s - COMMA!",__FUNCTION__);}
+		[self trim];
+		if ([[_field text] length]) {
+			_canEndEditing = YES;
+			[textField resignFirstResponder];
+			[_delegate tagCell:self willFinishEditingWithText:[_field text] withOriginalValue:_original usingComma:YES];
+			[_delegate tagCell:self didFinishEditingWithText:[_field text] withOriginalValue:_original usingComma:YES];
+		}
+		shouldChangeCharactersInRange = NO;
+	}
+	[_delegate tagCell:self wasModifiedWithText:string withOriginalValue:_original];
+	_canEndEditing = YES;
+	return shouldChangeCharactersInRange;
+}
+
+- (BOOL)textFieldShouldClear:(UITextField*)textField {
+	[_delegate tagCell:self wasClearedWithOriginal:_original];
+	return YES;
+}
+
+-(BOOL)textFieldShouldReturn:(UITextField *)textField {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self trim];
+	[_delegate tagCell:self willFinishEditingWithText:[_field text] withOriginalValue:_original usingComma:NO];
+	[textField resignFirstResponder];
+	return YES;
+}
+
+@end

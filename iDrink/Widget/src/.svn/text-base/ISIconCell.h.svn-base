@@ -1,0 +1,17 @@
+//
+//  ISIconCell.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/21/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@interface ISIconCell : UITableViewCell {
+	UIImageView* _iconView;
+	UILabel* _label;
+}
+@property (nonatomic,assign) IBOutlet UIImageView* iconView;
+@property (nonatomic,assign) IBOutlet UILabel* label;
+-(void)populateWithIcon:(UIImage*)image withText:(NSString*)text;
+@end

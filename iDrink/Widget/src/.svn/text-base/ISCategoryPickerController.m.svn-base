@@ -1,0 +1,188 @@
+//
+//  ISCategoryPickerController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/20/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISCategoryPickerController.h"
+#import "CAVNSArrayTypeCategory.h"
+#import "ISCategory.h"
+#import "ISCategoryPickerRow.h"
+
+@interface ISCategoryPickerController (private) <UIPickerViewDelegate>
+-(UIViewController*)vc;
+@end
+
+@implementation ISCategoryPickerController
+@synthesize parent = _parent;
+@synthesize done = _done;
+@synthesize oldRightBarButtonItem = _oldRightBarButtonItem;
+@synthesize view = _view;
+@synthesize categories = _categories;
+
+#pragma mark NSObject
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setDone:nil];
+	[self setOldRightBarButtonItem:nil];
+	[self setView:nil];
+	[self setCategories:nil];
+	[super dealloc];
+}
+
+#pragma mark ISCategoryPickerController
+
++(ISCategoryPickerController*)showInViewController:(UIViewController*)parent 
+			 withCategories:(NSArray*)categories 
+	   withSelectedCategory:(ISCategory*)category {	
+	NSMutableDictionary* injections = [[[NSMutableDictionary alloc] init] autorelease];
+	[injections setObject:categories forKey:@"categories"];
+	NSDictionary* proxied = [NSDictionary dictionaryWithObject:injections forKey:UINibExternalObjects];
+	NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"CategoryPicker" owner:parent options:proxied];
+	ISCategoryPickerController* controller = [wired firstObjectWithClass:[ISCategoryPickerController class]];
+	[controller pickerWillLoadWithCategory:category];
+	return controller;
+}
+
+-(UIViewController*)vc {
+	return (UIViewController*)_parent;
+}
+
+-(ISCategory*)category {
+	return [_categories objectAtIndex:[_view selectedRowInComponent:0]];
+}
+
+- (void)observeValueForKeyPath:(NSString*)keyPath 
+					  ofObject:(id)object 
+						change:(NSDictionary *)change 
+					   context:(void *)context
+{
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	for (NSObject* key in change) {
+		if (LOG) {NSLog(@"%s %@ => %@",__FUNCTION__, key, [change objectForKey:key]);}
+	}
+	// The next block is a total hack, but it works. Figure out how to do this the 'right way' later.
+	if ([[[self vc] view] frame].size.height != 200) {
+		CGRect newFrame = [[[self vc] view] frame];
+		newFrame.size.height = 200;
+		[[self vc] view].frame = newFrame;
+	}
+}
+
+-(void)pickerWillLoadWithCategory:(ISCategory*)category {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	UIViewController* vc = [self vc];
+	
+	[self setOldRightBarButtonItem:[[vc navigationItem] rightBarButtonItem]];
+	[[vc navigationItem] setRightBarButtonItem:_done];
+	
+	
+	// size up the picker view to our screen and compute the start/end frame origin for our slide up animation
+	//
+	// compute the start frame
+	CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
+	CGSize pickerSize = [_view sizeThatFits:CGSizeZero];
+	CGRect startRect = CGRectMake(0.0,
+								  screenRect.origin.y + screenRect.size.height,
+								  pickerSize.width, pickerSize.height);
+	
+	
+	[[[vc view] superview] setAutoresizesSubviews:NO];
+	[[vc view] addObserver:self forKeyPath:@"frame" options:(NSKeyValueObservingOptionNew) context:NULL];
+	
+	_view.frame = startRect;
+	
+	[[[vc view] window] addSubview:_view];
+	
+	// compute the end frame
+	CGRect pickerRect = CGRectMake(0.0,
+								   screenRect.origin.y + screenRect.size.height - pickerSize.height,
+								   pickerSize.width,
+								   pickerSize.height);
+	// start the slide up animation
+	[UIView beginAnimations:nil context:NULL];
+	[UIView setAnimationDuration:0.3];
+	[UIView setAnimationDelegate:self];
+	_view.frame = pickerRect;
+	CGRect newFrame = [vc view].frame;
+	newFrame.size.height -= _view.frame.size.height;
+	[vc view].frame = newFrame;
+	[UIView commitAnimations];
+	
+	[_view selectRow:[_categories indexOfObject:category] inComponent:0 animated:YES];
+}
+
+-(IBAction)done:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	UIViewController* vc = [self vc];
+	[[vc navigationItem] setRightBarButtonItem:_oldRightBarButtonItem];
+	[_parent categoryPicker:self didFinishPickingCategory:[self category]];
+	
+	[[[vc view] superview] setAutoresizesSubviews:YES];
+	[[vc view] removeObserver:self forKeyPath:@"frame"];
+	
+	//CGRect vcsize = [vc view].frame;
+	CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
+	CGRect endFrame = _view.frame;
+	endFrame.origin.y = screenRect.origin.y + screenRect.size.height;
+	
+	// start the slide down animation
+	[UIView beginAnimations:nil context:NULL];
+		[UIView setAnimationDuration:0.3];
+	
+		// we need to perform some post operations after the animation is complete
+		[UIView setAnimationDelegate:self];
+		[UIView setAnimationDidStopSelector:@selector(slideDownDidStop)];
+	
+		_view.frame = endFrame;
+	[UIView commitAnimations];
+	
+	// grow the table back again in vertical size to make room for the date picker
+	CGRect newFrame = [vc view].frame;
+	newFrame.size.height += _view.frame.size.height;
+	[vc view].frame = newFrame;
+	
+	// remove the "Done" button in the nav bar
+	[[vc navigationItem] setRightBarButtonItem:_oldRightBarButtonItem];
+	[self setOldRightBarButtonItem:nil];
+	[_view removeFromSuperview];
+	[_parent categoryPicker:self didFinishAnimatingOffScreenWithCategory:[self category]];
+}
+
+#pragma mark UIPickerViewDataSource
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+	return 1;
+}
+
+- (NSInteger)pickerView:(UIPickerView*)pickerView numberOfRowsInComponent:(NSInteger)component {
+	return [_categories count];
+}
+
+#pragma mark UIPickerViewDelegate
+- (CGFloat)pickerView:(UIPickerView *)pickerView widthForComponent:(NSInteger)component {
+	return 280;
+}
+- (CGFloat)pickerView:(UIPickerView *)pickerView rowHeightForComponent:(NSInteger)component {
+	return 50;
+}
+-(UIView*)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row 
+		  forComponent:(NSInteger)component 
+		   reusingView:(UIView *)view {
+	ISCategoryPickerRow* cview = (ISCategoryPickerRow*)view;
+	if (!cview) {
+		NSArray* wired = [[NSBundle mainBundle] loadNibNamed:@"CategoryPickerRow" owner:self options:nil];
+		cview = [wired firstObjectWithClass:[ISCategoryPickerRow class]];												
+	}
+	[cview populateWithCategory:[_categories objectAtIndex:row]];
+	return cview;
+}
+
+- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_parent categoryPicker:self didPickCategory:[self category]];
+}
+
+@end

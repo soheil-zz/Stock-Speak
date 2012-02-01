@@ -1,0 +1,44 @@
+//
+//  ISCategory.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISCategory.h"
+
+@implementation ISCategory
+@synthesize key = _key;
+@synthesize name = _name;
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setKey:nil];
+	[self setName:nil];
+	[super dealloc];
+}
+
+-(NSString*)description {
+	return [NSString stringWithFormat:@"[key=%@,name=%@]",_key,_name];
+}
+
+-(NSString*)singular {
+	if ([_name isEqualToString:@"Bugs"]) {
+		return @"Bug";
+	} else if ([_name isEqualToString:@"Features"]) {
+		return @"Feature";
+	} else {
+		return _name;
+	}
+}
+
+-(UIImage*)icon {
+	NSString* test = [self name];
+	if ([test isEqualToString:@"Bugs"]) {
+		return [UIImage imageNamed:@"48px-Crystal_Clear_action_flag.png"];
+	} else {
+		return [UIImage imageNamed:@"48px-Crystal_Clear_app_ktip.png"];
+	}
+}
+
+@end

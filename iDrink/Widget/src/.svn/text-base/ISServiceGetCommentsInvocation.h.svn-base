@@ -1,0 +1,30 @@
+//
+//  ISServiceGetCommentsInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceAsyncInvocation.h"
+
+#define kISStoreDefaultStoreName @"ideascale.sqlite"
+
+@class ISServiceGetCommentsInvocation;
+@class ISIdea;
+@class ISCategory;
+
+@protocol ISServiceGetCommentsDelegate
+-(void)getCommentsInvocationDidFinish:(ISServiceGetCommentsInvocation*)invocation 
+							 withIdea:(ISIdea*)idea 
+						 withComments:(NSArray*)comments 
+							withError:(NSError*)error;
+@end
+
+@interface ISServiceGetCommentsInvocation : ISServiceAsyncInvocation {
+	ISIdea* _idea;
+	NSMutableArray* _comments;
+}
+@property (nonatomic,retain) ISIdea* idea;
+@property (nonatomic,retain) NSArray* comments;
+@end

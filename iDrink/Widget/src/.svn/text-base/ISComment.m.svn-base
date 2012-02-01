@@ -1,0 +1,23 @@
+//
+//  ISComment.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISComment.h"
+#import "ISUser.h"
+
+@implementation ISComment
+@synthesize key = _key;
+@synthesize author = _author;
+@synthesize text = _text;
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setKey:nil];
+	[self setText:nil];
+	[self setAuthor:nil];
+	[super dealloc];
+}
+@end

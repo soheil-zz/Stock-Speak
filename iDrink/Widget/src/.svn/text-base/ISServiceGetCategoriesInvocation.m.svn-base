@@ -1,0 +1,82 @@
+//
+//  ISServiceGetCategoriesInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServiceGetCategoriesInvocation.h"
+
+#import "ISStore.h"
+#import "ISCategory.h"
+
+@interface ISServiceGetCategoriesInvocation (private)
+@end
+
+@implementation ISServiceGetCategoriesInvocation
+@synthesize categories = _categories;
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_categories release];
+	[super dealloc];
+}
+-(void)invoke {
+	NSString* path = [NSString stringWithFormat:@"ideascale.categories.getCategories?apiKey=%@", _apiKey];
+	[self get:path];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate getCategoriesDidFinish:self 
+						   withCategories:nil 
+								withError:[NSError errorWithDomain:@"categories"
+															  code:[[self response] statusCode] 
+														  userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate getCategoriesDidFinish:self withCategories:nil withError:error];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	if ([[self response] isOK]) {
+		NSDictionary* resultsd = [[[[NSString alloc] initWithData:_receivedData 
+														 encoding:NSUTF8StringEncoding] autorelease] JSONValue];
+		NSMutableArray* categoriesarr = [[resultsd objectForKey:@"response"] objectForKey:@"categories"];
+		_categories = [[NSMutableArray alloc] initWithCapacity:[categoriesarr count]];
+		BOOL setDefault = NO;
+		for (NSDictionary* categoryd in categoriesarr) {
+			ISCategory* category = [_store categoryForKey:[categoryd objectForKey:@"id"]];
+			[category setName:[categoryd objectForKey:@"name"]];
+			[_categories addObject:category];
+			if (!setDefault) {
+				[_store setDefaultCategory:category];
+				setDefault = YES;
+			}
+		}
+		// TODO: persit categories.
+		[_delegate getCategoriesDidFinish:self withCategories:_categories withError:nil];
+	} else {
+		[_delegate getCategoriesDidFinish:self 
+						   withCategories:nil 
+								withError:[NSError errorWithDomain:@"categories"
+															  code:[[self response] statusCode]
+														  userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+
+@end

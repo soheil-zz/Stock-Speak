@@ -1,0 +1,18 @@
+//
+//  ISLabelCell.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@interface ISLabelCell : UITableViewCell { 
+	UILabel* _label;
+	UILabel* _text;
+}
++(ISLabelCell*)cellWithOwner:(id)owner;
+@property (nonatomic,assign) IBOutlet UILabel* label;
+@property (nonatomic,assign) IBOutlet UILabel* text;
+-(void)populateWithText:(NSString*)text;
+@end

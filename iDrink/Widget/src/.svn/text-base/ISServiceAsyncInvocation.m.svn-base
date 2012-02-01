@@ -1,0 +1,166 @@
+//
+//  ISServiceAsyncInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServiceAsyncInvocation.h"
+#import "ISServiceConstants.h"
+#import "ISIdea.h"
+#import "ISUser.h"
+#import "ISStore.h"
+#import "JSONUtils.h"
+
+@interface ISServiceAsyncInvocation (private) 
+-(void)addHeaders:(NSMutableURLRequest*)request;
+@end
+
+@implementation ISServiceAsyncInvocation
+@synthesize store = _store;
+@synthesize finalizer = _finalizer;
+@synthesize delegate = _delegate;
+@synthesize key = _key;
+@synthesize apiKey = _apiKey;
+@synthesize timestamp = _timestamp;
+@synthesize response = _response;
+@synthesize receivedData = _receivedData;
+
+-(id)init {
+	if (LOG) {NSLog(@" ********************** %s",__FUNCTION__);}
+	self = [super init];
+	[self setKey:[JSONUtils uuid]];
+	[self setTimestamp:[NSDate date]];
+	_receivedData = [[NSMutableData alloc] initWithLength:0];
+	return self;
+}
+
+-(id)retain {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount],([self retainCount]+1));}
+	return [super retain];
+}
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_key release];
+	[_apiKey release];
+	[_timestamp release];
+	[_response release];
+	[_receivedData release];
+	[super dealloc];
+}
+
+-(BOOL)isReady {
+	return YES;
+}
+
+-(void)invoke { }
+
+-(void)get:(NSString*)path {
+	if (LOG) {NSLog(@"%s - path=%@",__FUNCTION__,path);}
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+	
+	NSMutableURLRequest* request = [[NSMutableURLRequest alloc] init];
+	NSString* url = [NSMutableString stringWithFormat:@"%@%@", kISServiceURLPrefix,path];
+	if (LOG) {NSLog(@"%s - url=%@",__FUNCTION__,url);}
+	[request setURL:[NSURL URLWithString:url]];
+	[request setHTTPMethod:@"GET"];
+	[self addHeaders:request];
+	[NSURLConnection connectionWithRequest:request delegate:self];
+	[pool release];
+}
+
+-(void)execute:(NSString*)method path:(NSString*)path body:(NSString*)body {
+	if (LOG) {NSLog(@"%s - %@ - path=%@ , body=%@",__FUNCTION__,method,path,body);}
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+	NSMutableURLRequest* request = [[NSMutableURLRequest alloc] init];
+	NSString* url = [NSMutableString stringWithFormat:@"%@%@", kISServiceURLPrefix,path];
+	if (LOG) {NSLog(@"%s - url=%@",__FUNCTION__,url);}
+	[request setURL:[NSURL URLWithString:url]];
+	[request setHTTPMethod:method];
+	if (body) {
+		NSData *data = [body dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:NO];
+		[request setHTTPBody:data];
+		[request setValue:[NSString stringWithFormat:@"%d", [data length]] forHTTPHeaderField:@"Content-Length"];
+		[request setValue:@"text/x-json" forHTTPHeaderField:@"Content-Type"];
+		if (LOG) {NSLog(@"%s - body: %@",__FUNCTION__,body);}
+	}
+	[self addHeaders:request];
+	[NSURLConnection connectionWithRequest:request delegate:self];
+	[pool release];
+}
+
+-(void)post:(NSString*)path body:(NSString*)body {
+	[self execute:@"POST" path:path body:body];
+}
+
+-(void)put:(NSString*)path body:(NSString*)body {
+	[self execute:@"PUT"  path:path body:body];
+}
+
+-(void)addHeaders:(NSMutableURLRequest*)request {
+	[request setValue:[ISUser currentDeviceId] forHTTPHeaderField:@"IS-Device-ID"];
+	[request setValue:kISClientVersion forHTTPHeaderField:@"IS-Client-Version"];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setResponse:(NSHTTPURLResponse*)response];
+	if (LOG && response) {
+		NSDictionary* headers = [_response allHeaderFields];
+		for (NSString* key in headers) {
+			NSLog(@"%s HEADER[%@]=>%@",__FUNCTION__,key,[headers objectForKey:key]);
+		}
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveData:(NSData*)data {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,[[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]autorelease]);}	
+	if ([_response isOK]) {
+		[_receivedData appendData:data];
+	}
+}
+
+-(ISIdea*)ideaFromJSONDict:(NSDictionary*)idead {
+	ISIdea* idea = [_store ideaForKey:[idead objectForKey:@"id"]];
+	return [self populateIdea:idea fromJSONDict:idead];
+}
+
+-(ISIdea*)populateIdea:(ISIdea*)idea fromJSONDict:(NSDictionary*)idead {
+	[idea setTimestamp:[JSONUtils dateFromTimeString:[idead objectForKey:@"timestamp"]]];
+	[idea setCategory:[_store categoryForKey:[idead objectForKey:@"categoryID"]]];
+	[idea setTitle:[idead objectForKey:@"title"]];
+	[idea setText:[idead objectForKey:@"text"]];
+	[idea setAuthor:[self userFromJSONDict:[idead objectForKey:@"authorInfo"]]];
+	[idea setCommentCount:[idead objectForKey:@"commentCount"]];
+	[idea setVotes:[idead objectForKey:@"voteCount"]];
+	[idea setVote:[idead objectForKey:@"myVote"]];
+	[idea setUrl:[idead objectForKey:@"url"]];
+	for (NSString* tagname in [idead objectForKey:@"tags"]) {
+		if (LOG) {NSLog(@"%s TAG:%@",__FUNCTION__,tagname);}
+		[idea add:[_store tag:tagname]];
+	}
+	return idea;
+}
+
+-(ISUser*)userFromJSONDict:(NSDictionary*)userd {
+	NSNumber* key = [userd objectForKey:@"id"];
+	NSString* deviceId = [userd objectForKey:@"externalIdentifier"];
+	ISUser* user = [_store userForKey:key withDeviceId:deviceId];
+	[user setName:[userd objectForKey:@"name"]];
+	[user setIdeaCount:[userd objectForKey:@"ideaCount"]];
+	[user setVoteCount:[userd objectForKey:@"voteCount"]];
+	[user setUrl:[userd objectForKey:@"url"]];
+	
+	NSError* error = nil;
+	[[_store context] save:&error];
+	if (error) {[NSException raise:@"store-fatal" format:@"Unable to Update User, %@",error];}
+	return user;
+}
+
+@end

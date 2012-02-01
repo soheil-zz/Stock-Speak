@@ -1,0 +1,28 @@
+//
+//  ISTextEditController.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/20/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@protocol ISTextEditControllerDelegate
+-(void)textEditDidFinishWithText:(NSString*)text withTarget:(id)target;
+-(void)textEditWillCloseWithText:(NSString*)text withTarget:(id)target;
+@optional
+
+@end
+
+@interface ISTextEditController : UIViewController { 
+	id <ISTextEditControllerDelegate> _delegate;
+	id _target;
+	
+	BOOL _keyboardShowing;
+	CGFloat _nokeyboardHeight;
+}
+@property (nonatomic,assign) IBOutlet id <ISTextEditControllerDelegate> delegate;
+@property (nonatomic,retain) IBOutlet id target;
+-(IBAction)save:(id)sender;
++(void)pushOntoViewController:(UIViewController*)parent withTarget:(id)target withText:(NSString*)text withTitle:(NSString*)title;
+@end

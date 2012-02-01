@@ -1,0 +1,48 @@
+//
+//  ISIdea.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISCategory;
+@class ISUser;
+@class ISTag;
+
+@interface ISIdea : NSObject { 
+	NSNumber* _key;
+	ISCategory* _category;
+	NSDate* _timestamp;
+	NSString* _title;
+	NSString* _text;
+	ISUser* _author;
+	NSString* _url;
+	NSNumber* _votes;
+	
+	NSNumber* _commentCount;
+	NSMutableArray* _tags;
+	
+	NSNumber* _vote;
+}
+@property (nonatomic,retain) NSNumber* key;
+@property (nonatomic,retain) ISCategory* category;
+@property (nonatomic,retain) NSDate* timestamp;
+@property (nonatomic,retain) NSString* title;
+@property (nonatomic,retain) NSString* text;
+@property (nonatomic,retain) ISUser* author;
+@property (nonatomic,retain) NSString* url;
+@property (nonatomic,retain) NSNumber* votes;
+@property (nonatomic,retain) NSNumber* vote;
+
+@property (nonatomic,retain) NSNumber* commentCount;
+@property (nonatomic,retain) NSMutableArray* tags;
+
+-(void)add:(ISTag*)tag;
+-(void)remove:(ISTag*)tag;
+
+-(BOOL)isOkToSave;
+-(NSString*)tagsText;
+-(NSString*)emailBody;
+@end

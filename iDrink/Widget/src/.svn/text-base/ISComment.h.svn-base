@@ -1,0 +1,20 @@
+//
+//  ISComment.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@class ISUser;
+
+@interface ISComment : NSObject {
+	NSNumber* _key;
+	ISUser* _author;
+	NSString* _text;
+}
+@property (nonatomic,retain) NSNumber* key;
+@property (nonatomic,retain) ISUser* author;
+@property (nonatomic,retain) NSString* text;
+@end

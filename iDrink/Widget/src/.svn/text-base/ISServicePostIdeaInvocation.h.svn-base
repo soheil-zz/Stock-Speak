@@ -1,0 +1,22 @@
+//
+//  ISServicePostIdeaInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/16/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceAsyncInvocation.h"
+
+@class ISServicePostIdeaInvocation;
+@class ISIdea;
+
+@protocol ISServicePostIdeaDelegate
+-(void)postIdeaDidFinish:(ISServicePostIdeaInvocation*)invocation withIdea:(ISIdea*)idea withError:(NSError*)error;
+@end
+
+@interface ISServicePostIdeaInvocation : ISServiceAsyncInvocation {
+	ISIdea* _idea;
+}
+@property (nonatomic,retain) ISIdea* idea;
+@end

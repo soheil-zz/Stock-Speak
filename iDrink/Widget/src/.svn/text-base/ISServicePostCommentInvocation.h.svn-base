@@ -1,0 +1,26 @@
+//
+//  ISServicePostCommentInvocation.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServiceAsyncInvocation.h"
+
+@class ISServicePostCommentInvocation;
+@class ISIdea;
+@class ISComment;
+
+@protocol ISServicePostCommentDelegate
+-(void)postCommentDidFinish:(ISServicePostCommentInvocation*)invocation withComment:(ISComment*)comment inIdea:(ISIdea*)idea withError:(NSError*)error;
+@end
+
+@interface ISServicePostCommentInvocation : ISServiceAsyncInvocation {
+	ISIdea* _idea;
+	ISComment* _comment;
+}
+@property (nonatomic,retain) ISIdea* idea;
+@property (nonatomic,retain) ISComment* comment;
+@end
+
+

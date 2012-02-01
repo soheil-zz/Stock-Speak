@@ -1,0 +1,355 @@
+//
+//  ISIdeaController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/2/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISIdeaController.h"
+#import <MessageUI/MessageUI.h>
+#import "ISWebController.h"
+#import "ISService.h"
+#import "ISIdea+UI.h"
+#import "ISCategory.h"
+#import "ISCommentCell.h"
+#import "ISComment.h"
+#import "ISServiceGetCommentsInvocation.h"
+#import "ISTextEditController.h"
+#import "ISUser.h"
+#import "ISActivityOverlayController.h"
+
+@interface ISIdeaController (private) <MFMailComposeViewControllerDelegate
+	,ISServiceVoteOnIdeaDelegate
+	,ISServiceGetCommentsDelegate
+	,UITableViewDelegate
+	,ISTextEditControllerDelegate
+	,ISServicePostCommentDelegate
+	,UITableViewDataSource>
+-(void)hideVoteButtonsAnimationDidStop;
+-(void)countLabelGrowAnimationDidStop;
+-(void)removeVoteButtons:(BOOL)animated;
+-(void)hideCommentsAnimationDidStop;
+-(void)updateCommentCount:(BOOL)showZero;
+-(void)removeActivity;
+-(void)pulse:(UIView*)view;
+@end
+
+@implementation ISIdeaController
+@synthesize service = _service;
+@synthesize idea = _idea;
+@synthesize iconView = _iconView;
+@synthesize countLabel = _countLabel;
+@synthesize titleLabel = _titleLabel;
+@synthesize commentsIcon = _commentsIcon;
+@synthesize commentCountLabel = _commentCountLabel;
+@synthesize tagsLabel = _tagsLabel;
+
+@synthesize cornerIcon = _cornerIcon;
+
+@synthesize textView = _textView;
+@synthesize upButton = _upButton;
+@synthesize dnButton = _dnButton;
+
+@synthesize doneButton = _doneButton;
+@synthesize addCommentButton = _addCommentButton;
+
+@synthesize commentsWrapper = _commentsWrapper;
+@synthesize commentsTable = _commentsTable;
+
+@synthesize comments = _comments;
+@synthesize heightCalculatorCell = _heightCalculatorCell;
+
+@synthesize activity = _activity;
+
+#pragma mark NSObject
+-(void)dealloc {
+	[self setService:nil];
+	[self setIdea:nil];
+	[self setUpButton:nil];
+	[self setDnButton:nil];
+	
+	[self setCommentsWrapper:nil];
+	[self setComments:nil];
+	[self setHeightCalculatorCell:nil];
+	[_toolbarItemsForIdea release]; _toolbarItemsForIdea = nil;
+	[_toolbarItemsForComments release]; _toolbarItemsForComments = nil;
+	[self setActivity:nil];
+	[super dealloc];
+}
+
+#pragma mark UIViewController
+-(void)viewDidLoad {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_countLabel setText:[NSString stringWithFormat:@"%@", [_idea votes]]];
+	[_iconView setImage:[_idea categoryIcon]];
+	[_titleLabel setText:[_idea title]];
+	[_tagsLabel setText:[_idea tagsText]];
+	[_textView setText:[_idea text]];
+	UIImage* image = [_idea cornerIcon];
+	[_cornerIcon setImage:image];
+	if (!image) {
+		[_cornerIcon setAlpha:0.0f];
+	}
+	[self setHeightCalculatorCell:[ISCommentCell cellWithOwner:self]];
+
+	[self updateCommentCount:NO];
+	
+	if ([[_idea vote] intValue] || [[_idea author] authenticated]) {
+		[self removeVoteButtons:NO];
+	}
+	[[self navigationItem] setRightBarButtonItem:nil];
+}
+
+-(void)viewDidAppear:(BOOL)animated {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[self navigationController] setToolbarHidden:NO animated:YES];
+	
+	if (![_commentsWrapper superview]) {
+		_toolbarItemsForIdea = [[[[self navigationController] toolbar] items] retain];
+		_toolbarItemsForComments = [[NSArray arrayWithObjects:
+								 [_toolbarItemsForIdea objectAtIndex:0],
+								 [_toolbarItemsForIdea objectAtIndex:1],
+								 [_toolbarItemsForIdea objectAtIndex:2],
+								 _addCommentButton, nil] retain];
+	} else {
+		[[[self navigationController] toolbar] setItems:_toolbarItemsForComments];
+	}
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+	return YES;
+}
+
+#pragma mark ISIdeaController
+-(IBAction)edit:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+}
+-(IBAction)voteUp:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setActivity:[ISActivityOverlayController presentActivityOverViewController:self withLabel:@"Voting Up!"]];
+	[_service voteOnIdea:_idea withVote:1 withDelegate:self];
+}
+-(IBAction)voteDown:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setActivity:[ISActivityOverlayController presentActivityOverViewController:self withLabel:@"Voting Down"]];
+	[_service voteOnIdea:_idea withVote:-1 withDelegate:self];
+}
+-(IBAction)showComments:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_service getCommentsForIdea:_idea withDelegate:self];
+	[[[self navigationController] toolbar] setItems:_toolbarItemsForComments];
+	[[self navigationItem] setRightBarButtonItem:_doneButton];
+	CGRect frame = _commentsWrapper.frame;
+	frame.origin.x = 0;
+	frame.origin.y = [self view].frame.size.height;
+	frame.size.width = self.view.frame.size.width;
+	frame.size.height = self.view.frame.size.height - 55;
+	[_commentsWrapper setFrame:frame];
+	[[self view] addSubview:_commentsWrapper];
+	[[self view] bringSubviewToFront:_commentsWrapper];
+	[UIView beginAnimations:@"revealCommentsAnimation" context:nil];
+	[UIView setAnimationDuration:0.5];
+	_commentsWrapper.transform = CGAffineTransformMakeTranslation(0, -frame.size.height);
+	if (LOG) {NSLog(@"%s Y=%1.1f,H=%1.1f,T=%1.1f",__FUNCTION__,frame.origin.y,frame.size.height,(-frame.size.height));}
+	[UIView commitAnimations];
+}
+-(IBAction)hideComments:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[[self navigationController] toolbar] setItems:_toolbarItemsForIdea];
+	[UIView beginAnimations:@"revealCommentsAnimation" context:nil];
+	[UIView setAnimationDuration:0.5];
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(hideCommentsAnimationDidStop)];
+	_commentsWrapper.transform = CGAffineTransformMakeTranslation(0, 0);
+	[UIView commitAnimations];
+}
+
+-(void)hideCommentsAnimationDidStop {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_commentsWrapper removeFromSuperview];
+	[[self navigationItem] setRightBarButtonItem:nil];
+}
+
+-(IBAction)addComment:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[ISTextEditController pushOntoViewController:self 
+									  withTarget:self 
+										withText:@"" 
+									   withTitle:@"New Comment"];
+}
+
+-(IBAction)shareIdea:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	MFMailComposeViewController* picker = [[MFMailComposeViewController alloc] init];
+	[picker setMailComposeDelegate:self];
+	[picker setSubject:[_idea title]];
+	[picker setMessageBody:[_idea emailBody] isHTML:YES];
+	[self presentModalViewController:picker animated:YES];
+	[picker release];
+}
+-(IBAction)visitIdeaScaleDotCom:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[ISWebController openWithin:[self navigationController] withOwner:self];
+}
+
+#pragma mark ISIdeaController (private)
+
+-(void)pulse:(UIView*)view {
+	[UIView beginAnimations:@"pulse:grow" context:view];
+	view.transform = CGAffineTransformMakeScale(3.0, 3.0);
+	[UIView setAnimationDuration:0.5];
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(pulseGrowAnimationDidStop:finished:context:)];
+	[UIView commitAnimations];
+}
+
+-(void)pulseGrowAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(UIView*)context {
+	[UIView beginAnimations:@"pulse:shrink" context:context];
+	context.transform = CGAffineTransformMakeScale(1.0, 1.0);
+	[UIView setAnimationDuration:0.5];
+	[UIView commitAnimations];
+}
+
+-(void)hideVoteButtonsAnimationDidStop {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self removeVoteButtons:YES];
+}
+
+-(void)removeVoteButtons:(BOOL)animated {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	CGFloat heightDelta = [_upButton frame].size.height + 8 + 8; // Button + above + below
+	[_upButton removeFromSuperview];
+	[_dnButton removeFromSuperview];
+	[self setUpButton:nil];
+	[self setDnButton:nil];
+	CGRect frame = [_textView frame];
+	frame.size.height += heightDelta;
+	frame.origin.y -= heightDelta;
+	if (animated) {
+		[UIView beginAnimations:@"growTextArea" context:self];
+		_textView.frame = frame;
+		[UIView commitAnimations];
+	} else {
+		_textView.frame = frame;
+	}
+}
+
+-(void)updateCommentCount:(BOOL)showZero {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	BOOL hidden = ![[_idea commentCount] intValue] && !showZero;
+	NSString* count = hidden ? @"" : [NSString stringWithFormat:@"%@",[_idea commentCount]];
+	[_commentsIcon setHidden:hidden];
+	[_commentCountLabel setText:count];
+}
+
+#pragma mark MFMailComposeViewControllerDelegate
+- (void)mailComposeController:(MFMailComposeViewController*)controller 
+		  didFinishWithResult:(MFMailComposeResult)result 
+						error:(NSError*)error {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	switch (result)
+	{
+		case MFMailComposeResultCancelled: break;
+		case MFMailComposeResultSaved: break;
+		case MFMailComposeResultSent: break;
+		case MFMailComposeResultFailed: break;
+		default: break;
+	}
+	[self dismissModalViewControllerAnimated:YES];
+}
+
+#pragma mark ISServiceVoteOnIdeaDelegate
+-(void)voteOnIdeaDidFinish:(ISServiceVoteOnIdeaInvocation*)invocation withIdea:(ISIdea*)idea withVote:(NSInteger)vote withError:(NSError*)error {
+	if (!error) {
+		[_activity dismissActivityWithTarget:self usingSelector:@selector(removeActivity) withLabel:@"Vote Accepted" completedOK:YES];
+		[_countLabel setText:[NSString stringWithFormat:@"%@", [_idea votes]]];
+		[_cornerIcon setImage:[_idea cornerIcon]];
+		[UIView beginAnimations:@"hideVoteButtons" context:self];
+		[UIView setAnimationDuration:0.5];
+		[UIView setAnimationDelegate:self];
+		[UIView setAnimationDidStopSelector:@selector(hideVoteButtonsAnimationDidStop)];
+		[_upButton setAlpha:0.0f];
+		[_dnButton setAlpha:0.0f];
+		[_cornerIcon setAlpha:1.0f];
+		[UIView commitAnimations];
+		
+		[self pulse:_countLabel];
+	} else {
+		[_activity dismissActivityWithTarget:self usingSelector:@selector(removeActivity) withLabel:@"Error" completedOK:NO];
+	}
+}
+
+#pragma mark UITableViewDelegate
+- (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath {
+	ISComment* comment = [_comments objectAtIndex:indexPath.row];
+	CGFloat height = [_heightCalculatorCell rowHeightForComment:comment];
+	if (LOG) {NSLog(@"%s height: %1.1f",__FUNCTION__,height);}
+	return height;
+}
+
+#pragma mark UITableViewDataSource
+- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
+	switch (section) {
+		case 0: return [_comments count];
+		default: return 0;
+	}
+}
+
+- (UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	ISCommentCell* cell = (ISCommentCell*)[_commentsTable dequeueReusableCellWithIdentifier:@"CommentCell"];
+	if (!cell) {
+		cell = [ISCommentCell cellWithOwner:self];
+	}
+	[cell populate:[_comments objectAtIndex:indexPath.row]];
+	return cell;
+}
+
+#pragma mark ISServiceGetCommentsInvocation
+-(void)getCommentsInvocationDidFinish:(ISServiceGetCommentsInvocation*)invocation 
+							 withIdea:(ISIdea*)idea 
+						 withComments:(NSArray*)comments 
+							withError:(NSError*)error {
+	
+	[self setComments:[[[NSMutableArray alloc] initWithCapacity:[comments count]] autorelease]];
+	[_comments addObjectsFromArray:comments];
+	[self updateCommentCount:YES];
+	[_commentsTable reloadData];
+}
+
+#pragma mark ISTextEditControllerDelegate
+-(void)textEditDidFinishWithText:(NSString*)text withTarget:(id)target {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	text = [text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	if ([text length]) {
+		ISComment* comment = [[[ISComment alloc] init] autorelease];
+		[comment setText:text];
+		[_service postComment:comment inIdea:_idea withDelegate:self];
+	}
+}
+
+-(void)textEditWillCloseWithText:(NSString*)text withTarget:(id)target {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+}
+
+#pragma mark ISServicePostCommentDelegate
+
+-(void)postCommentDidFinish:(ISServicePostCommentInvocation*)invocation 
+				withComment:(ISComment*)comment 
+					 inIdea:(ISIdea*)idea 
+				  withError:(NSError*)error {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_comments addObject:comment];
+	NSIndexPath* path = [NSIndexPath indexPathForRow:[_comments count]-1 inSection:0];
+	[_commentsTable insertRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationTop];
+	[self pulse:_commentCountLabel];
+	[self updateCommentCount:YES];
+}
+
+-(void)removeActivity {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setActivity:nil];
+}
+
+
+@end

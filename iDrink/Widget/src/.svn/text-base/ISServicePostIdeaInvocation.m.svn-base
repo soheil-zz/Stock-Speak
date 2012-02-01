@@ -1,0 +1,98 @@
+//
+//  ISServicePostIdeaInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/16/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServicePostIdeaInvocation.h"
+
+#import "ISStore.h"
+#import "ISIdea.h"
+#import "ISCategory.h"
+#import "ISUser.h"
+
+@interface ISServicePostIdeaInvocation (private)
+-(NSString*)body;
+-(ISUser*)userFromDict:(NSDictionary*)userd;
+@end
+
+@implementation ISServicePostIdeaInvocation
+@synthesize idea = _idea;
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_idea release];
+	[super dealloc];
+}
+-(void)invoke {
+	NSString* path = [NSString stringWithFormat:@"ideascale.ideas.postIdea?apiKey=%@&categoryID=%@",_apiKey,[[_idea category] key]];
+	[self post:path body:[self body]];
+}
+
+-(NSString*)body {
+	NSMutableArray* tagsA = [[[NSMutableArray alloc] initWithCapacity:[[_idea tags] count]] autorelease];
+	for (ISTag* tag in [_idea tags]) {
+		[tagsA addObject:[tag name]];
+	}
+	NSMutableDictionary* bodyD = [[[NSMutableDictionary alloc] init] autorelease];
+	[bodyD setObject:[ISUser currentDeviceId] forKey:@"iPhoneID"];
+	[bodyD setObject:[_idea title] forKey:@"title"];
+	[bodyD setObject:[_idea text] forKey:@"text"];
+	[bodyD setObject:tagsA forKey:@"tags"];
+	return [bodyD JSONRepresentation];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate postIdeaDidFinish:self withIdea:_idea 
+						   withError:[NSError errorWithDomain:@"service" 
+														 code:[[self response] statusCode] 
+													 userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate postIdeaDidFinish:self withIdea:_idea withError:error];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	
+	if ([[self response] isOK]) {
+		NSDictionary* resultsd = [[[[NSString alloc] initWithData:_receivedData 
+														 encoding:NSUTF8StringEncoding] autorelease] JSONValue];
+		NSMutableArray* ideasarr = [[resultsd objectForKey:@"response"] objectForKey:@"ideas"];
+		NSDictionary* idead = [ideasarr objectAtIndex:0];
+		[self populateIdea:_idea fromJSONDict:idead];
+		[_delegate postIdeaDidFinish:self withIdea:_idea withError:nil];
+	} else {
+		[_delegate postIdeaDidFinish:self 
+							withIdea:_idea 
+						   withError:[NSError errorWithDomain:@"ideas" 
+														 code:[[self response] statusCode] 
+													 userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+
+-(ISUser*)userFromDict:(NSDictionary*)userd {
+	ISUser* user = [_store authenticatedUser];
+	[user setKey:[userd objectForKey:@"authorId"]];
+	[user setName:[userd objectForKey:@"author"]];
+	NSError* error = nil;
+	[[_store context] save:&error];
+	if (error) {[NSException raise:@"store-fatal" format:@"Unable to Update User, %@",error];}
+	return user;
+}
+
+@end

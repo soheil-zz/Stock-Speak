@@ -1,0 +1,10 @@
+//
+//  CAVNSArrayTypeCategory.h
+//  MeasureMe
+//
+//  Created by Jeremy Przasnyski on 3/31/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+@interface NSArray (Type)
+-(id)firstObjectWithClass:(Class)class;
+@end

@@ -1,0 +1,34 @@
+//
+//  ISCommentCell.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 12/3/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISCommentCell.h"
+#import "CAVNSArrayTypeCategory.h"
+
+@implementation ISCommentCell
+@synthesize commentLabel = _commentLabel;
+
++(ISCommentCell*)cellWithOwner:(id)owner {
+	ISCommentCell* cell = [[[NSBundle mainBundle] loadNibNamed:@"CommentRow" owner:self options:nil] 
+						   firstObjectWithClass:[ISCommentCell class]];
+	return cell;
+}
+
+-(void)populate:(ISComment*)comment {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_commentLabel setText:[comment text]];
+}
+
+-(CGFloat)rowHeightForComment:(ISComment*)comment {
+	NSString* messageStr = [comment text];
+	CGSize constSize = { [_commentLabel frame].size.width, 20000.0f };
+	CGSize size = [messageStr sizeWithFont:[_commentLabel font]
+						 constrainedToSize:constSize 
+							 lineBreakMode:UILineBreakModeWordWrap];
+	return size.height + 8;
+}
+
+@end

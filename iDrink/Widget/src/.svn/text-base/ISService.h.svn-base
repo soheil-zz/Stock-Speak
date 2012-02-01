@@ -1,0 +1,40 @@
+//
+//  ISService.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+#import "ISServiceConstants.h"
+#import "ISServiceAsyncInvocation.h"
+#import "ISServiceGetCategoriesInvocation.h"
+#import "ISServiceGetIdeasInvocation.h"
+#import "ISServicePostIdeaInvocation.h"
+#import "ISServiceGetCommentsInvocation.h"
+#import "ISServicePostCommentInvocation.h"
+#import "ISServiceVoteOnIdeaInvocation.h"
+#import "ISServiceRegisterForPushNotificationsInvocation.h"
+
+@class ISStore;
+@class ISUser;
+
+@interface ISService : NSObject <ISServiceRegisterForPushNotificationsDelegate> {
+	NSString* _apiKey;
+	ISStore* _store;
+	
+	NSMutableDictionary* _invocations;
+	ISCategory* _CATEGORY_HACK;
+}
++(ISService*)serviceWithApiKey:(NSString*)apiKey;
+@property (nonatomic,retain) IBOutlet NSString* apiKey;
+@property (nonatomic,retain) IBOutlet ISStore* store;
+-(ISUser*)authenticatedUser;
+-(void)registerForPushNotificationsWithDelegate:(id <ISServiceRegisterForPushNotificationsDelegate>)delegate withToken:(NSData*)token;
+-(void)getCategoriesWithDelegate:(id <ISServiceGetCategoriesDelegate>)delegate;
+-(void)getIdeasWithDelegate:(id <ISServiceGetIdeasDelegate>)delegate inCategory:(ISCategory*)category;
+-(void)postIdea:(ISIdea*)idea withDelegate:(id <ISServicePostIdeaDelegate>)delegate;
+-(void)getCommentsForIdea:(ISIdea*)idea withDelegate:(id <ISServiceGetCommentsDelegate>)delegate;
+-(void)postComment:(ISComment*)comment inIdea:(ISIdea*)idea withDelegate:(id <ISServicePostCommentDelegate>)delegate;
+-(void)voteOnIdea:(ISIdea*)idea withVote:(NSInteger)vote withDelegate:(id <ISServiceVoteOnIdeaDelegate>)delegate;
+@end

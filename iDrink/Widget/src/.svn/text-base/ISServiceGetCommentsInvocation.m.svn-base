@@ -1,0 +1,89 @@
+//
+//  ISServiceGetCommentsInvocation.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/18/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISServiceGetCommentsInvocation.h"
+
+#import "ISStore.h"
+#import "ISCategory.h"
+#import "ISIdea.h"
+#import "ISUser.h"
+#import "ISComment.h"
+
+@interface ISServiceGetCommentsInvocation (private)
+-(ISUser*)userFromDict:(NSDictionary*)userd;
+@end
+
+@implementation ISServiceGetCommentsInvocation
+@synthesize idea = _idea;
+@synthesize comments = _comments;
+
+#pragma mark store setup
+
+-(void)release {
+	if (LOG) {NSLog(@"%s (%d=>%d)",__FUNCTION__,[self retainCount], ([self retainCount]-1));}
+	[super release];
+}
+-(void)dealloc {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_idea release];
+	[_comments release];
+	[super dealloc];
+}
+
+-(void)invoke {
+	NSString* path = [NSString stringWithFormat:@"ideascale.comments.getComments?apiKey=%@&ideaID=%@", _apiKey, [_idea key]];
+	[self get:path];
+}
+
+- (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[super connection:connection didReceiveResponse:response];
+	if (![[self response] isOK]) {
+		[_delegate getCommentsInvocationDidFinish:self 
+										 withIdea:_idea 
+									 withComments:nil
+										withError:[NSError errorWithDomain:@"service"
+																	  code:[[self response] statusCode]
+																  userInfo:nil]];
+		[_finalizer finalize:self];
+	}
+}
+
+- (void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error {
+	if (LOG) {NSLog(@"%s: %@",__FUNCTION__,error);}
+	[_delegate getCommentsInvocationDidFinish:self withIdea:_idea withComments:nil withError:error];
+	[_finalizer finalize:self];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection*)connection {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if ([[self response] isOK]) {
+		NSDictionary* resultsd = [[[[NSString alloc] initWithData:_receivedData 
+														 encoding:NSUTF8StringEncoding] autorelease] JSONValue];
+		NSMutableArray* results = [[resultsd objectForKey:@"response"] objectForKey:@"comments"];
+		_comments = [[NSMutableArray alloc] initWithCapacity:[results count]];
+		for (NSDictionary* commentd in results) {
+			NSNumber* key = [commentd objectForKey:@"id"];
+			ISComment* comment = [_store commentForKey:key];
+			[comment setText:[commentd objectForKey:@"text"]];
+			[comment setAuthor:[self userFromJSONDict:[commentd objectForKey:@"author"]]];
+			[_comments addObject:comment];
+		}
+		// TODO: persit comments.
+		[_delegate getCommentsInvocationDidFinish:self withIdea:_idea withComments:_comments withError:nil];
+	} else {
+		[_delegate getCommentsInvocationDidFinish:self 
+										 withIdea:_idea 
+									 withComments:nil 
+										withError:[NSError errorWithDomain:@"comments"
+																	  code:[[self response] statusCode]
+																  userInfo:nil]];
+	}
+	[_finalizer finalize:self];
+}
+
+@end

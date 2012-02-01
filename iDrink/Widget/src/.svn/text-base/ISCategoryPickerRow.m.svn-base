@@ -1,0 +1,19 @@
+//
+//  ISCategoryPickerRow.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/20/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+
+#import "ISCategoryPickerRow.h"
+#import "ISCategory.h"
+
+@implementation ISCategoryPickerRow
+@synthesize icon = _icon;
+@synthesize label = _label;
+-(void)populateWithCategory:(ISCategory*)category {
+	[_icon setImage:[category icon]];
+	[_label setText:[category singular]];
+}
+@end

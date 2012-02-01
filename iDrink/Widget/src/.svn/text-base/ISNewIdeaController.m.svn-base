@@ -1,0 +1,439 @@
+//
+//  ISNewIdeaController.m
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 11/8/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import "ISNewIdeaController.h"
+
+#import "ISService.h"
+#import "ISStore.h"
+
+#import "ISIdea.h"
+#import "ISTag.h"
+#import "ISCategory.h"
+
+#import "ISLabelCell.h"
+#import "ISTagCell.h"
+
+#import "ISWebController.h"
+#import "ISServicePostIdeaInvocation.h"
+#import "ISTextEditController.h"
+
+#import "ISTextEditController.h"
+#import "ISCategoryPickerController.h"
+#import "ISIconCell.h"
+
+#import "ISActivityOverlayController.h"
+
+@interface ISNewIdeaController (private) <ISServicePostIdeaDelegate
+	,ISTextEditControllerDelegate
+	,ISCategoryPickerDelegate>
+-(UITableView*)table;
+-(void)insertTagInTable:(UITableView*)tableView atIndexPath:(NSIndexPath*)indexPath;
+-(void)deleteTagInTable:(UITableView*)tableView atIndexPath:(NSIndexPath*)indexPath;
+-(void)setCategory:(ISCategory*)category;
+-(void)validateIdea;
+-(void)keyboardDidShow:(NSNotification*)notification;
+-(void)keyboardWillHide;
+-(void)keyboardDidHide:(NSNotification*)notification;
+-(NSString*)tagPlaceholder;
+-(void)removeActivity;
+-(void)popViewController;
+@end
+
+@implementation ISNewIdeaController
+@synthesize delegate = _delegate;
+@synthesize service = _service;
+@synthesize titleCell = _titleCell;
+@synthesize textCell = _textCell;
+@synthesize categoryCell = _categoryCell;
+
+@synthesize activity = _activity;
+
+@synthesize idea = _idea;
+
+-(void)dealloc {
+	[self setService:nil];
+	[self setIdea:nil];
+	[self setTitleCell:nil];
+	[self setTextCell:nil];
+	[self setCategoryCell:nil];
+	[_tags release]; _tags = nil;
+	[_categoryPicker release]; _categoryCell = nil;
+	[self setActivity:nil];
+	[super dealloc];
+}
+-(UITableView*)table {
+	return (UITableView*)[self view];
+}
+
+#pragma mark UIViewController
+-(void)viewDidLoad {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setIdea:[[_service store] newIdea]];
+	_tags = [[NSMutableArray alloc] initWithCapacity:10];
+	[self setTitle:@"New Idea"];
+	[_titleCell populateWithText:[_idea title]];
+	[_textCell populateWithText:[_idea text]];
+	[[self table] setEditing:YES];
+	[self setCategory:[[_service store] defaultCategory]];
+	[self validateIdea];
+	for (int i = 0; i < [[_idea tags] count]; i++) { // Possibly using this UI for edit as well as new.
+		[_tags addObject:[[[_idea tags] objectAtIndex:i] name]]; // Copy tag string to local array
+	}
+	[_tags addObject:@""]; // Represents 'new tag'.
+	_newTagRow = [_tags count]-1;
+}
+-(void)viewWillAppear:(BOOL)animated {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(keyboardDidShow:)
+												 name: UIKeyboardDidShowNotification object:nil];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(keyboardDidHide:)
+												 name:UIKeyboardDidHideNotification object:nil];
+	[[self navigationController] setToolbarHidden:NO animated:YES];
+}
+-(void)viewWillDisappear:(BOOL)animated {
+	if (_categoryPicker) {
+		[_categoryPicker done:self];
+	}
+	[[NSNotificationCenter defaultCenter] removeObserver:self];	
+}
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+	return YES;
+}
+
+#define kISNewIdeaSectionFields 0
+#define kISNewIdeaSectionTags 1
+
+#define kISIdeaFieldTitle 0
+#define kISIdeaFieldText 1
+#define kISIdeaFieldCategory 2
+
+#pragma mark UITableViewDataSource
+-(NSInteger)numberOfSectionsInTableView:(UITableView*)tableView {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+    return 2;
+}
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	switch (section) {
+		case kISNewIdeaSectionFields: return 3;
+		case kISNewIdeaSectionTags: return [_tags count];
+		default: return 0;
+	}	
+}
+-(ISTagCell*)tableView:(UITableView *)tableView tagCellForIndexPath:(NSIndexPath*)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISTagCell *cell = (ISTagCell*)[tableView dequeueReusableCellWithIdentifier:@"TagCell"];
+	if (cell == nil) {
+		cell = [ISTagCell cellWithOwner:self];
+    }
+	NSString* tag = [_tags objectAtIndex:indexPath.row];
+	NSString* placeholder = [self tagPlaceholder];
+	[cell populateWithText:tag withPlaceholder:placeholder];
+	return cell;
+}
+-(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	switch (indexPath.section) {
+		case kISNewIdeaSectionFields: 
+			switch (indexPath.row) {
+				case kISIdeaFieldTitle: return _titleCell;
+				case kISIdeaFieldText: return _textCell;
+				case kISIdeaFieldCategory: return _categoryCell;
+				default: return nil;
+			}
+		case kISNewIdeaSectionTags:
+			return [self tableView:tableView tagCellForIndexPath:indexPath];
+		default:
+			return nil;
+	}
+}
+-(CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	switch (indexPath.section) {
+		case kISNewIdeaSectionFields: 
+			switch (indexPath.row) {
+				case kISIdeaFieldTitle: return 68;
+				case kISIdeaFieldText: return 72;
+				case kISIdeaFieldCategory: return 54;
+				default: return 44;
+			}
+		default: return 44;
+	}
+}
+
+#pragma mark UITableViewDelegate
+#pragma mark UITableViewDelegate EDITING
+-(BOOL)tableView:(UITableView*)tableView canEditRowAtIndexPath:(NSIndexPath*)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	return YES;
+}
+-(UITableViewCellEditingStyle)tableView:(UITableView*)tableView editingStyleForRowAtIndexPath:(NSIndexPath*)indexPath {
+	return UITableViewCellEditingStyleNone;
+}
+-(void)tableView:(UITableView *)tableView willBeginEditingRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (indexPath.section == kISNewIdeaSectionTags) {
+		//TODO - THIS DOES NOT WORK AT THE MOMENT - Need to resize the scroll area to account for the keyboard.
+		[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+	}
+}
+- (void)tableView:(UITableView*)tableView didEndEditingRowAtIndexPath:(NSIndexPath*)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+}
+-(BOOL)tableView:(UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath*)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	return NO;
+}
+
+#pragma mark UITableViewDelegate SELECTION
+-(NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (_categoryPicker) {
+		if (indexPath.section == kISNewIdeaSectionFields && indexPath.row != kISIdeaFieldCategory) {
+			[_categoryPicker done:self];
+			return indexPath;
+		}
+		return nil;
+	}
+	if (indexPath.section == kISNewIdeaSectionTags) {
+		ISTagCell* target = (ISTagCell*)[tableView cellForRowAtIndexPath:indexPath];
+		[[target field] becomeFirstResponder];
+	}
+	return indexPath;
+}
+-(void)pushEdit:(ISLabelCell*)cell inTableView:(UITableView*)tableView withIndexPath:indexPath withTitle:(NSString*)title {
+	[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+	[ISTextEditController pushOntoViewController:self 
+									  withTarget:cell 
+										withText:[[cell text] text] 
+									   withTitle:title];
+}
+-(void)showCategoriesAndScrollToIndexPath:(NSIndexPath*)path inTableView:(UITableView*)tableView {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (!_categoryPicker) {
+		// Already open.
+		[[self navigationController] setToolbarHidden:YES animated:YES];
+		_categoryPicker = [[ISCategoryPickerController showInViewController:self 
+														withCategories:[[_service store] categories] 
+												  withSelectedCategory:[_idea category]] retain];
+		[tableView scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+	}
+}
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	switch (indexPath.section) {
+		case kISNewIdeaSectionFields:
+			if (LOG) {NSLog(@"%s FIELDS",__FUNCTION__);}
+			switch (indexPath.row) {
+				case kISIdeaFieldTitle:	[self pushEdit:_titleCell inTableView:tableView withIndexPath:indexPath withTitle:@"Idea Title"];	  return;
+				case kISIdeaFieldText:	[self pushEdit:_textCell  inTableView:tableView withIndexPath:indexPath withTitle:@"Idea Details"]; return;
+				case kISIdeaFieldCategory: [self showCategoriesAndScrollToIndexPath:indexPath inTableView:tableView];
+				default: return;
+			}
+		case kISNewIdeaSectionTags:
+			if (LOG) {NSLog(@"%s TAGS",__FUNCTION__);}
+			[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+			return;
+		default: return;
+	}
+}
+
+#pragma mark UITableViewDelegate INSERTING/DELETING
+-(void)tableView:(UITableView*)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	switch (editingStyle) {
+		case UITableViewCellEditingStyleDelete:
+			[self deleteTagInTable:tableView atIndexPath:indexPath]; return;
+		case UITableViewCellEditingStyleInsert:
+			[self insertTagInTable:tableView atIndexPath:indexPath]; return;
+		default: return;
+	}
+}
+
+#pragma mark ISNewIdeaController (private)
+-(NSString*)tagPlaceholder {
+	return ([_tags count] > 1) ? @"New Tag" : @"Tags";
+}
+-(void)deleteTagInTable:(UITableView*)tableView atIndexPath:(NSIndexPath*)indexPath {
+	// Delete the tag.
+	// Ensure the cell is not being edited, otherwise the callback in textFieldShouldEndEditing: may look for a non-existent row.
+	//EditableTableViewCell *cell = (EditableTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
+	//[cell.textField resignFirstResponder];
+	ISTag* tag = [[_idea tags] objectAtIndex:indexPath.row];
+	//TODO: jeremyp - ensure object has been deleted.
+	[_idea remove:tag];
+	[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] 
+					 withRowAnimation:UITableViewRowAnimationFade];	
+}
+-(void)insertTagInTable:(UITableView*)tableView atIndexPath:(NSIndexPath*)indexPath {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISTag* tag = [[[ISTag alloc] init] autorelease]; // TOOD: jeremyp - should probably get existing instance.
+	[tag setName:@""];
+	[tag setVotes:[NSNumber numberWithInt:0]];
+	[tag setCount:[NSNumber numberWithInt:0]];
+	[_idea add:tag];
+	[tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:YES];
+	[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+}
+-(void)setCategory:(ISCategory*)category {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_idea setCategory:category];
+	[_categoryCell populateWithIcon:[[_idea category] icon] withText:[[_idea category] singular]];
+}
+-(void)keyboardDidShow:(NSNotification*)notification {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (_keyboardShowing) {return;}
+	NSValue* bounds = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
+	CGSize keyboardSize = [bounds CGRectValue].size;
+	CGRect frame = [[self view] frame];
+	_nokeyboardHeight = frame.size.height;
+	frame.size.height = _nokeyboardHeight - keyboardSize.height + [[self navigationController] toolbar].frame.size.height;
+	[[self view] setFrame:frame];	
+	[[self table] scrollToRowAtIndexPath:[[self table] indexPathForCell:_editingCell] atScrollPosition:UITableViewScrollPositionBottom animated:YES];	
+	_keyboardShowing = YES;
+}
+-(void)keyboardWillHide {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (!_keyboardShowing) {return;}
+	CGRect frame = [self view].frame;
+	frame.size.height = _nokeyboardHeight;
+	[[self view] setFrame:frame];
+	_keyboardShowing = NO;	
+}
+-(void)keyboardDidHide:(NSNotification*)notification {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self keyboardWillHide];
+}
+
+#pragma mark ISNewIdeaController
+-(IBAction)visitIdeaScaleDotCom:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[ISWebController openWithin:[self navigationController] withOwner:self];
+}
+-(IBAction)save:(id)sender {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[_idea tags] removeAllObjects];
+	for (NSString* name in _tags) {
+		if ([name length]) {
+			[_idea add:[[_service store] tag:name]];
+		}
+	}
+	[self setActivity:[ISActivityOverlayController presentActivityOverViewController:self withLabel:@"Saving Idea"]];
+	[_service postIdea:_idea withDelegate:self];
+}
+-(void)postIdeaDidFinish:(ISServicePostIdeaInvocation*)invocation withIdea:(ISIdea*)idea withError:(NSError*)error {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (!error) {
+		[_delegate newIdeaController:self didCreateNewIdea:_idea];
+		[_activity dismissActivityWithTarget:self usingSelector:@selector(popViewController) withLabel:@"Saved" completedOK:YES];
+	} else {
+		[_activity dismissActivityWithTarget:self usingSelector:@selector(removeActivity) withLabel:@"Error" completedOK:NO];
+	}
+}
+-(void)removeActivity {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self setActivity:nil];
+}
+
+-(void)popViewController {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[self removeActivity];
+	[[self navigationController] popViewControllerAnimated:YES];
+}
+
+-(void)validateIdea {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	BOOL enabled = ([_idea isOkToSave] && !_categoryPicker);
+	[[[self navigationItem] rightBarButtonItem] setEnabled:enabled];
+}
+
+#pragma mark ISTextEditControllerDelegate
+
+-(void)textEditWillCloseWithText:(NSString*)text withTarget:(id)target {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[self table] deselectRowAtIndexPath:[[self table] indexPathForSelectedRow] animated:YES];
+}
+-(void)textEditDidFinishWithText:(NSString*)text withTarget:(id)target {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	ISLabelCell* cell = target;
+	[cell populateWithText:text];
+	if (_titleCell == cell) {
+		[_idea setTitle:text];
+	} else if (_textCell == cell) {
+		[_idea setText:text];
+	}
+	[self validateIdea];
+}
+
+#pragma mark ISTagCellDelegate
+-(void)tagCell:(ISTagCell*)cell didBeginEditingWithOriginal:(NSString*)original {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	_editingCell = cell;
+}
+
+-(void)tagCell:(ISTagCell*)cell wasClearedWithOriginal:(NSString*)original {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (![original length]) { // Originally was clear
+		NSIndexPath* path = [NSIndexPath indexPathForRow:([_tags count]-1) inSection:kISNewIdeaSectionTags];
+		[_tags removeObjectAtIndex:path.row]; // Remove last row
+		[[self table] deleteRowsAtIndexPaths:[NSArray arrayWithObject:path] withRowAnimation:UITableViewRowAnimationTop];
+	} 
+	_newTagRow = [[self table] indexPathForCell:cell].row;
+	[[cell field] setPlaceholder:[self tagPlaceholder]];
+}
+-(void)tagCell:(ISTagCell*)cell wasModifiedWithText:(NSString*)text withOriginalValue:(NSString*)original {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSIndexPath* path = [[self table] indexPathForCell:cell];
+	if (_newTagRow == path.row && [text length]) { // Was clear, now has text
+		NSIndexPath* newPath = [NSIndexPath indexPathForRow:[_tags count] inSection:kISNewIdeaSectionTags];
+		_newTagRow = newPath.row;
+		[_tags addObject:@""];
+		[[self table] insertRowsAtIndexPaths:[NSArray arrayWithObject:newPath] withRowAnimation:UITableViewRowAnimationBottom];
+	}
+}
+-(void)tagCell:(ISTagCell*)cell willFinishEditingWithText:(NSString*)text withOriginalValue:(NSString*)original usingComma:(BOOL)comma {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	if (!comma) {
+		[self keyboardWillHide];
+	}
+}
+-(void)tagCell:(ISTagCell*)cell didFinishEditingWithText:(NSString*)text withOriginalValue:(NSString*)original usingComma:(BOOL)comma {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	NSIndexPath* path = [[self table] indexPathForCell:cell];
+	if ([text length]) {
+		[_tags replaceObjectAtIndex:path.row withObject:text];
+	}
+	if (comma) {
+		NSIndexPath* nextPath = [NSIndexPath indexPathForRow:_newTagRow inSection:kISNewIdeaSectionTags];
+		ISTagCell* nextCell = (ISTagCell*)[[self table] cellForRowAtIndexPath:nextPath];
+		_editingCell = nextCell;
+		[[self table] scrollToRowAtIndexPath:nextPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+		[[nextCell field] becomeFirstResponder];
+	} else {
+		_editingCell = nil;
+	}
+}
+
+#pragma mark ISCategoryPickerDelegate
+-(void)categoryPicker:(ISCategoryPickerController*)picker didPickCategory:(ISCategory*)category {
+	[self setCategory:category];
+}
+-(void)categoryPicker:(ISCategoryPickerController*)picker didFinishPickingCategory:(ISCategory*)category {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[[self navigationController] setToolbarHidden:NO animated:YES];
+	[[self table] deselectRowAtIndexPath:[[self table] indexPathForSelectedRow] animated:YES];
+	[self setCategory:category];
+}
+-(void)categoryPicker:(ISCategoryPickerController*)picker didFinishAnimatingOffScreenWithCategory:(ISCategory*)category {
+	if (LOG) {NSLog(@"%s",__FUNCTION__);}
+	[_categoryPicker release];
+	_categoryPicker = nil;
+}
+
+@end

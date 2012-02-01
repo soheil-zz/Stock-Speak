@@ -1,0 +1,18 @@
+//
+//  ISCategory.h
+//  IdeaScale
+//
+//  Created by Jeremy Przasnyski on 10/30/09.
+//  Copyright 2009 Cavoort, LLC. All rights reserved.
+//
+#import <Foundation/Foundation.h>
+
+@interface ISCategory : NSObject { 
+	NSNumber* _key;
+	NSString* _name;
+}
+@property (nonatomic,retain) NSNumber* key;
+@property (nonatomic,retain) NSString* name;
+-(UIImage*)icon;
+-(NSString*)singular;
+@end
