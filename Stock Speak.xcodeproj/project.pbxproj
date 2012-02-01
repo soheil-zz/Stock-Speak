@@ -504,13 +504,13 @@
 		15E15FD713DDCFEE006ABFE6 /* TwitterRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TwitterRequest.h; sourceTree = "<group>"; };
 		15E15FD813DDCFEE006ABFE6 /* TwitterRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TwitterRequest.m; sourceTree = "<group>"; };
 		15E771F613CB5BEE003B3D56 /* FlipView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = FlipView.xib; sourceTree = "<group>"; };
-		15E7FE8713CACDF0007E1655 /* iDrink.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iDrink.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		15E7FE8713CACDF0007E1655 /* Stock Speak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stock Speak.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		15E7FE8B13CACDF0007E1655 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		15E7FE8D13CACDF0007E1655 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		15E7FE8F13CACDF0007E1655 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		15E7FE9313CACDF0007E1655 /* iDrink-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "iDrink-Info.plist"; sourceTree = "<group>"; };
+		15E7FE9313CACDF0007E1655 /* Stock Speak-Info.plist */ = {isa = PBXFileReference; path = "Stock Speak-Info.plist"; sourceTree = "<group>"; };
 		15E7FE9513CACDF0007E1655 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		15E7FE9713CACDF0007E1655 /* iDrink-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "iDrink-Prefix.pch"; sourceTree = "<group>"; };
+		15E7FE9713CACDF0007E1655 /* Stock Speak-Prefix.pch */ = {isa = PBXFileReference; path = "Stock Speak-Prefix.pch"; sourceTree = "<group>"; };
 		15E7FE9813CACDF0007E1655 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		15E7FE9A13CACDF0007E1655 /* iDrinkAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iDrinkAppDelegate.h; sourceTree = "<group>"; };
 		15E7FE9B13CACDF0007E1655 /* iDrinkAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = iDrinkAppDelegate.m; sourceTree = "<group>"; };
@@ -961,7 +961,7 @@
 		15E7FE8813CACDF0007E1655 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				15E7FE8713CACDF0007E1655 /* iDrink.app */,
+				15E7FE8713CACDF0007E1655 /* Stock Speak.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1029,9 +1029,9 @@
 		15E7FE9213CACDF0007E1655 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				15E7FE9313CACDF0007E1655 /* iDrink-Info.plist */,
+				15E7FE9313CACDF0007E1655 /* Stock Speak-Info.plist */,
 				15E7FE9413CACDF0007E1655 /* InfoPlist.strings */,
-				15E7FE9713CACDF0007E1655 /* iDrink-Prefix.pch */,
+				15E7FE9713CACDF0007E1655 /* Stock Speak-Prefix.pch */,
 				15E7FE9813CACDF0007E1655 /* main.m */,
 			);
 			name = "Supporting Files";
@@ -1057,9 +1057,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		15E7FE8613CACDF0007E1655 /* iDrink */ = {
+		15E7FE8613CACDF0007E1655 /* Stock Speak */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 15E7FEA813CACDF1007E1655 /* Build configuration list for PBXNativeTarget "iDrink" */;
+			buildConfigurationList = 15E7FEA813CACDF1007E1655 /* Build configuration list for PBXNativeTarget "Stock Speak" */;
 			buildPhases = (
 				15E7FE8313CACDF0007E1655 /* Sources */,
 				15E7FE8413CACDF0007E1655 /* Frameworks */,
@@ -1069,9 +1069,9 @@
 			);
 			dependencies = (
 			);
-			name = iDrink;
+			name = "Stock Speak";
 			productName = iDrink;
-			productReference = 15E7FE8713CACDF0007E1655 /* iDrink.app */;
+			productReference = 15E7FE8713CACDF0007E1655 /* Stock Speak.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1082,7 +1082,7 @@
 			attributes = {
 				LastUpgradeCheck = 0420;
 			};
-			buildConfigurationList = 15E7FE8113CACDEF007E1655 /* Build configuration list for PBXProject "iDrink" */;
+			buildConfigurationList = 15E7FE8113CACDEF007E1655 /* Build configuration list for PBXProject "Stock Speak" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -1094,7 +1094,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				15E7FE8613CACDF0007E1655 /* iDrink */,
+				15E7FE8613CACDF0007E1655 /* Stock Speak */,
 			);
 		};
 /* End PBXProject section */
@@ -1367,11 +1367,11 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Soheil Yasrebi";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iDrink/iDrink-Prefix.pch";
+				GCC_PREFIX_HEADER = "iDrink/Stock Speak-Prefix.pch";
 				HEADER_SEARCH_PATHS = "/Users/sman/Documents/iDrink/uservoice-iphone-sdk/**";
-				INFOPLIST_FILE = "iDrink/iDrink-Info.plist";
+				INFOPLIST_FILE = "iDrink/Stock Speak-Info.plist";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Stock Speak";
 				PROVISIONING_PROFILE = "1957B817-89C3-4BF6-8BAF-07E74B6D47BE";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1957B817-89C3-4BF6-8BAF-07E74B6D47BE";
 				SDKROOT = iphoneos;
@@ -1425,11 +1425,11 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iDrink/iDrink-Prefix.pch";
+				GCC_PREFIX_HEADER = "iDrink/Stock Speak-Prefix.pch";
 				HEADER_SEARCH_PATHS = "/Users/sman/Documents/iDrink/uservoice-iphone-sdk/**";
-				INFOPLIST_FILE = "iDrink/iDrink-Info.plist";
+				INFOPLIST_FILE = "iDrink/Stock Speak-Info.plist";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Stock Speak";
 				PROVISIONING_PROFILE = "76F28978-ED5D-425B-8C63-CD0DE894CD51";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "76F28978-ED5D-425B-8C63-CD0DE894CD51";
 				SDKROOT = iphoneos;
@@ -1449,11 +1449,11 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Soheil Yasrebi";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iDrink/iDrink-Prefix.pch";
+				GCC_PREFIX_HEADER = "iDrink/Stock Speak-Prefix.pch";
 				HEADER_SEARCH_PATHS = "/Users/sman/Documents/iDrink/uservoice-iphone-sdk/**";
-				INFOPLIST_FILE = "iDrink/iDrink-Info.plist";
+				INFOPLIST_FILE = "iDrink/Stock Speak-Info.plist";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Stock Speak";
 				PROVISIONING_PROFILE = "1957B817-89C3-4BF6-8BAF-07E74B6D47BE";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1957B817-89C3-4BF6-8BAF-07E74B6D47BE";
 				SDKROOT = iphoneos;
@@ -1465,7 +1465,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		15E7FE8113CACDEF007E1655 /* Build configuration list for PBXProject "iDrink" */ = {
+		15E7FE8113CACDEF007E1655 /* Build configuration list for PBXProject "Stock Speak" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				15E7FEA613CACDF1007E1655 /* Debug */,
@@ -1475,7 +1475,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		15E7FEA813CACDF1007E1655 /* Build configuration list for PBXNativeTarget "iDrink" */ = {
+		15E7FEA813CACDF1007E1655 /* Build configuration list for PBXNativeTarget "Stock Speak" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				15E7FEA913CACDF1007E1655 /* Debug */,
