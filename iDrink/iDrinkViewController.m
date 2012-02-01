@@ -633,11 +633,11 @@ static NSString* kAppId = @"116669421761762";
 - (IBAction)feedback:(id)sender
 {
 //    [[ISFeedback sharedInstance] pushOntoViewController:self];
-    
-	[UserVoice presentUserVoiceModalViewControllerForParent:self
-													andSite:@"idrink.uservoice.com"
-													 andKey:@"vicsym4kaROR5ZKEkHBvzA"
-												  andSecret:@"iyKhWf8kr5H0c1j6DPN7ZXmgkmX9nLrzVz80sps"];
+//    
+//	[UserVoice presentUserVoiceModalViewControllerForParent:self
+//													andSite:@"idrink.uservoice.com"
+//													 andKey:@"vicsym4kaROR5ZKEkHBvzA"
+//												  andSecret:@"iyKhWf8kr5H0c1j6DPN7ZXmgkmX9nLrzVz80sps"];
 }
 
 - (IBAction)flipView

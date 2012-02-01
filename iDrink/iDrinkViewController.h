@@ -8,7 +8,6 @@
 #import "FBConnect.h"
 #import "FBLoginButton.h"
 #import "Appirater.h"
-#import "UserVoice.h"
 #import "InAppPurchaseManager.h"
 
 @class Reachability;
