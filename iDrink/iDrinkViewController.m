@@ -46,7 +46,7 @@ static NSString* kAppId = @"116669421761762";
         [self feedback:nil];
         [self dehighlightTabBar];
     } else
-    if ([[item title] isEqualToString:@"Cocktail Menu"]) {
+    if ([[item title] isEqualToString:@"History"]) {
         [self presentModalViewController:menuViewController animated:YES];
         [self dehighlightTabBar];
     }
