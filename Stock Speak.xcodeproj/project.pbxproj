@@ -46,10 +46,6 @@
 		15E7FE9F13CACDF0007E1655 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 15E7FE9D13CACDF0007E1655 /* MainWindow.xib */; };
 		15E7FEA213CACDF0007E1655 /* iDrinkViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E7FEA113CACDF0007E1655 /* iDrinkViewController.m */; };
 		15E7FEA513CACDF1007E1655 /* iDrinkViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 15E7FEA313CACDF1007E1655 /* iDrinkViewController.xib */; };
-		15E7FEB013CACE48007E1655 /* 57.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E7FEAC13CACE48007E1655 /* 57.png */; };
-		15E7FEB113CACE48007E1655 /* 114.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E7FEAD13CACE48007E1655 /* 114.png */; };
-		15E7FEB213CACE48007E1655 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E7FEAE13CACE48007E1655 /* Default.png */; };
-		15E7FEB313CACE48007E1655 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E7FEAF13CACE48007E1655 /* Default@2x.png */; };
 		15E7FEB613CACF0E007E1655 /* LoadingView.m in Sources */ = {isa = PBXBuildFile; fileRef = 15E7FEB513CACF0E007E1655 /* LoadingView.m */; };
 		15E7FEBD13CAD04C007E1655 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E7FEBC13CAD04C007E1655 /* AVFoundation.framework */; };
 		15E7FEC213CAD146007E1655 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E7FEC113CAD146007E1655 /* SystemConfiguration.framework */; };
@@ -59,6 +55,11 @@
 		15ED3B2E13DCC84800315486 /* twitter-logo-twit.png in Resources */ = {isa = PBXBuildFile; fileRef = 15ED3B2B13DCC84800315486 /* twitter-logo-twit.png */; };
 		15ED3B3113DCC85700315486 /* TwitterAgent.m in Sources */ = {isa = PBXBuildFile; fileRef = 15ED3B3013DCC85700315486 /* TwitterAgent.m */; };
 		15ED3B3413DCC86A00315486 /* BusyAgent.m in Sources */ = {isa = PBXBuildFile; fileRef = 15ED3B3313DCC86A00315486 /* BusyAgent.m */; };
+		5B9BF2EA14D8FB7D001922FB /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B9BF2E514D8FB7D001922FB /* Default.png */; };
+		5B9BF2EB14D8FB7D001922FB /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B9BF2E614D8FB7D001922FB /* Default@2x.png */; };
+		5B9BF2EC14D8FB7D001922FB /* 57.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B9BF2E714D8FB7D001922FB /* 57.png */; };
+		5B9BF2ED14D8FB7D001922FB /* 72.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B9BF2E814D8FB7D001922FB /* 72.png */; };
+		5B9BF2EE14D8FB7D001922FB /* 114.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B9BF2E914D8FB7D001922FB /* 114.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -124,10 +125,6 @@
 		15E7FEA013CACDF0007E1655 /* iDrinkViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iDrinkViewController.h; sourceTree = "<group>"; };
 		15E7FEA113CACDF0007E1655 /* iDrinkViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = iDrinkViewController.m; sourceTree = "<group>"; };
 		15E7FEA413CACDF1007E1655 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/iDrinkViewController.xib; sourceTree = "<group>"; };
-		15E7FEAC13CACE48007E1655 /* 57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 57.png; sourceTree = "<group>"; };
-		15E7FEAD13CACE48007E1655 /* 114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 114.png; sourceTree = "<group>"; };
-		15E7FEAE13CACE48007E1655 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
-		15E7FEAF13CACE48007E1655 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		15E7FEB413CACF0E007E1655 /* LoadingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoadingView.h; sourceTree = "<group>"; };
 		15E7FEB513CACF0E007E1655 /* LoadingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoadingView.m; sourceTree = "<group>"; };
 		15E7FEBC13CAD04C007E1655 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
@@ -140,6 +137,11 @@
 		15ED3B3013DCC85700315486 /* TwitterAgent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TwitterAgent.m; path = TwitterAgent/TwitterAgent.m; sourceTree = "<group>"; };
 		15ED3B3213DCC86A00315486 /* BusyAgent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BusyAgent.h; path = BusyAgent/BusyAgent.h; sourceTree = "<group>"; };
 		15ED3B3313DCC86A00315486 /* BusyAgent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BusyAgent.m; path = BusyAgent/BusyAgent.m; sourceTree = "<group>"; };
+		5B9BF2E514D8FB7D001922FB /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		5B9BF2E614D8FB7D001922FB /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		5B9BF2E714D8FB7D001922FB /* 57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 57.png; sourceTree = "<group>"; };
+		5B9BF2E814D8FB7D001922FB /* 72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 72.png; sourceTree = "<group>"; };
+		5B9BF2E914D8FB7D001922FB /* 114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 114.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -302,16 +304,17 @@
 		15E7FEAB13CACE1F007E1655 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				5B9BF2E514D8FB7D001922FB /* Default.png */,
+				5B9BF2E614D8FB7D001922FB /* Default@2x.png */,
+				5B9BF2E714D8FB7D001922FB /* 57.png */,
+				5B9BF2E814D8FB7D001922FB /* 72.png */,
+				5B9BF2E914D8FB7D001922FB /* 114.png */,
 				15C64DB0141725B700B39AAE /* icons */,
 				157D615913EE25FB003BDFD1 /* cling_1.wav */,
 				157D615A13EE25FB003BDFD1 /* cling_2.wav */,
 				15ED3B2B13DCC84800315486 /* twitter-logo-twit.png */,
 				15ED3B2913DCC84800315486 /* fb_message_bg.png */,
 				15ED3B2A13DCC84800315486 /* Twitter_logo.png */,
-				15E7FEAC13CACE48007E1655 /* 57.png */,
-				15E7FEAD13CACE48007E1655 /* 114.png */,
-				15E7FEAE13CACE48007E1655 /* Default.png */,
-				15E7FEAF13CACE48007E1655 /* Default@2x.png */,
 			);
 			name = Assets;
 			sourceTree = "<group>";
@@ -369,10 +372,6 @@
 				15E7FE9613CACDF0007E1655 /* InfoPlist.strings in Resources */,
 				15E7FE9F13CACDF0007E1655 /* MainWindow.xib in Resources */,
 				15E7FEA513CACDF1007E1655 /* iDrinkViewController.xib in Resources */,
-				15E7FEB013CACE48007E1655 /* 57.png in Resources */,
-				15E7FEB113CACE48007E1655 /* 114.png in Resources */,
-				15E7FEB213CACE48007E1655 /* Default.png in Resources */,
-				15E7FEB313CACE48007E1655 /* Default@2x.png in Resources */,
 				15E771F713CB5BEE003B3D56 /* FlipView.xib in Resources */,
 				15ED3B2C13DCC84800315486 /* fb_message_bg.png in Resources */,
 				15ED3B2D13DCC84800315486 /* Twitter_logo.png in Resources */,
@@ -384,6 +383,11 @@
 				15C64DB6141726FA00B39AAE /* idea.png in Resources */,
 				15C64DB81417280D00B39AAE /* t.png in Resources */,
 				1598573E141C2EDE00A0141B /* menu.png in Resources */,
+				5B9BF2EA14D8FB7D001922FB /* Default.png in Resources */,
+				5B9BF2EB14D8FB7D001922FB /* Default@2x.png in Resources */,
+				5B9BF2EC14D8FB7D001922FB /* 57.png in Resources */,
+				5B9BF2ED14D8FB7D001922FB /* 72.png in Resources */,
+				5B9BF2EE14D8FB7D001922FB /* 114.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
