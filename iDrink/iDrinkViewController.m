@@ -502,7 +502,7 @@ static NSString* kAppId = @"116669421761762";
         [[TWTweetComposeViewController alloc] init];
         [tweetSheet setInitialText:[NSString stringWithFormat: @"#stock for \"%@\" is going for %@!", topField.text, label1.text]];
         [tweetSheet addURL:[NSURL URLWithString:
-                            [NSString stringWithFormat: @"http://www.jog-a-lot.com/stock-speack/%@", 
+                            [NSString stringWithFormat: @"http://www.jog-a-lot.com/stock-speak/%@", 
                              [topField.text stringByReplacingOccurrencesOfString:@" " withString:@"+"]]]];
         [tweetSheet addImage:[UIImage imageNamed:@"Default.png"]];
         [self presentModalViewController:tweetSheet animated:YES];

@@ -168,7 +168,7 @@
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 						<int key="IBUIContentVerticalAlignment">0</int>
 						<string key="IBUIText">Speak a Stock Name</string>
-						<string key="IBUIPlaceholder">Please enter a stock name</string>
+						<string key="IBUIPlaceholder">Enter a stock</string>
 						<reference key="IBUITextColor" ref="376371729"/>
 						<int key="IBUITextAlignment">1</int>
 						<bool key="IBUIAdjustsFontSizeToFit">YES</bool>
