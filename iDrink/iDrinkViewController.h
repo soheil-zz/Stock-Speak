@@ -53,6 +53,7 @@ UITabBarDelegate> {
 @property (nonatomic, retain) IBOutlet UILabel *flipLabel;
 @property (nonatomic, retain) IBOutlet UIButton *flipButton;
 @property (nonatomic, retain) IBOutlet UIButton *facebookButton;
+@property (nonatomic, retain) IBOutlet UIButton *refreshButton;
 @property (nonatomic, retain) IBOutlet UIButton *tweetButton;
 @property (nonatomic, retain) IBOutlet UIButton *typeButton;
 @property (nonatomic, retain) IBOutlet UIButton *speakButton;
@@ -89,6 +90,7 @@ UITabBarDelegate> {
 
 - (void)statuses_updateCallback:(NSData *)content;
 - (IBAction)feedback:(id)sender;
+- (IBAction)refresh:(id)sender;
 - (IBAction)startType:(id)sender;
 - (IBAction)menuViewClose:(id)sender;
 

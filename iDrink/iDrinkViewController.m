@@ -6,7 +6,7 @@
 @implementation iDrinkViewController
 
 @synthesize topField, label1, label2, flipLabel;
-@synthesize flipButton, facebookButton, tweetButton, typeButton, speakButton, ideasButton, menuViewController, tabBar, menuTableView;
+@synthesize flipButton, facebookButton, refreshButton, tweetButton, typeButton, speakButton, ideasButton, menuViewController, tabBar, menuTableView;
 @synthesize label = _label, facebook = _facebook;
 
 static NSString* kAppId = @"116669421761762";
@@ -210,6 +210,7 @@ static NSString* kAppId = @"116669421761762";
         theField.text = topFieldBeforeTypingStarted;
         flipButton.hidden = buttonsVisibilityBeforeTypingStarted;
         facebookButton.hidden = buttonsVisibilityBeforeTypingStarted;
+        refreshButton.hidden = buttonsVisibilityBeforeTypingStarted;
         tweetButton.hidden = buttonsVisibilityBeforeTypingStarted;
     }
     
@@ -261,6 +262,7 @@ static NSString* kAppId = @"116669421761762";
     
     flipButton.hidden = YES;
     facebookButton.hidden = YES;
+    refreshButton.hidden = YES;
     tweetButton.hidden = YES;
     
     topFieldBeforeTypingStarted = [[NSString stringWithFormat:@"%@", topField.text] retain];
@@ -322,6 +324,7 @@ static NSString* kAppId = @"116669421761762";
     } else {
         flipButton.hidden = NO;
         facebookButton.hidden = NO;
+        refreshButton.hidden = NO;
         tweetButton.hidden = NO;
         topField.text = [lines objectAtIndex:0];
         label1.text = [lines objectAtIndex:1];
@@ -613,6 +616,7 @@ static NSString* kAppId = @"116669421761762";
     
     flipButton.hidden = YES;
     facebookButton.hidden = YES;
+    refreshButton.hidden = YES;
     tweetButton.hidden = YES;
     
     typeButton.enabled = NO;
@@ -719,6 +723,7 @@ static NSString* kAppId = @"116669421761762";
     
     flipButton.hidden = YES;
     facebookButton.hidden = YES;
+    refreshButton.hidden = YES;
     tweetButton.hidden = YES;
     
     inAppPurchaseManager = [InAppPurchaseManager alloc];
@@ -783,7 +788,33 @@ static NSString* kAppId = @"116669421761762";
         if ([variableKey isEqualToString:@"drink"]) {
         }
     }*/
+    
+    [self loadnav];
+    /*
+    UIBarButtonItem *refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshTable)];
+    self.navigationItem.rightBarButtonItem = refreshButton;
+     */
 }
+
+- (void)loadnav
+{
+    /*
+    UINavigationBar *nav = [[UINavigationBar alloc] init];
+    [nav setBarStyle:UIBarStyleBlack];
+    [nav setTranslucent:YES];
+    [nav setTintColor:[UIColor redColor]];
+    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@"Done"];
+    [nav setItems:[NSArray arrayWithObject:navigationItem]];
+    [navigationItem release];
+    [nav setFrame:CGRectMake(0, -44, 320, 44)];
+    [self.view addSubview:nav];
+     */
+}
+
+- (IBAction)refresh:(id)sender
+{
+    [self makeRequestAndGetResultsDelayed];
+} 
 
 - (void)statuses_updateCallback:(NSData *)content
 {
